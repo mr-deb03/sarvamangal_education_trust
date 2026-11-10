@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/*
+ * Sarvamangal design tokens — see design-system/sarvamangal/MASTER.md.
+ * Components use these names (bg-ink, text-crimson, font-display…), never raw hex.
+ */
+@theme {
+  /* Ink: fountain-pen blue-black. Headings, dark bands, footer. */
+  --color-ink: #17193b;
+  --color-ink-soft: #2b2e4a; /* body text */
+  --color-ink-muted: #5e6283; /* secondary text, 5.9:1 on white */
+  --color-ink-200: #b9bcdb; /* secondary text on ink */
+
+  /* Crimson: the logo's red. Donate buttons and the notebook margin line. */
+  --color-crimson: #c8103a;
+  --color-crimson-deep: #8e0b36;
+
+  /* Marigold: auspicious yellow. Highlighter strokes, accents on ink. */
+  --color-marigold: #f6b21b;
+  --color-marigold-soft: #fde7b0;
+
+  /* Notebook paper. */
+  --color-paper: #ffffff;
+  --color-paper-2: #f3f6fb;
+  --color-ruling: #bbd3ee;
+  --color-line: #e3e8f1;
+  --color-pencil: #6b7088;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Font families point at next/font variables set on <html> in layout.tsx. */
+@theme inline {
+  --font-display: var(--font-eczar), Georgia, serif;
+  --font-sans: var(--font-mukta), system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    /* Keep focused/anchored elements clear of the sticky header and the phone Donate bar. */
+    scroll-padding-block: 5.5rem;
+  }
+
+  a,
+  button,
+  label,
+  summary {
+    touch-action: manipulation;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink-soft);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Crimson ring on light surfaces; dark sections switch it to marigold. */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring, var(--color-crimson));
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-marigold-soft);
+    color: var(--color-ink);
+  }
+
+  summary {
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* A dark section: light text, marigold focus ring. */
+@utility on-ink {
+  --focus-ring: var(--color-marigold);
+  background-color: var(--color-ink);
+  color: var(--color-ink-200);
+}
+
+/* Small-capitals label above section titles ("Our causes", "Give"…). */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ── Accent underline ────────────────────────────────────────────
+ * The crimson underline under the key words of the hero headline.
+ * A real text-decoration, so it sits on the baseline in any font and
+ * skips descenders.
+ */
+.accent-underline {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-crimson);
+  text-decoration-thickness: 0.075em;
+  text-underline-offset: 0.14em;
+  text-decoration-skip-ink: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The line fades in and settles up into place. */
+  .accent-underline {
+    animation: underline-in 700ms var(--ease-out-soft) both;
+    animation-delay: var(--underline-delay, 650ms);
+  }
+
+  .rise {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 700ms var(--ease-out-soft) forwards;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+}
+
+@keyframes underline-in {
+  from {
+    text-decoration-color: transparent;
+    text-underline-offset: 0.42em;
+  }
+  to {
+    text-decoration-color: var(--color-crimson);
+    text-underline-offset: 0.14em;
+  }
+}
+
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Scroll reveal ───────────────────────────────────────────────
+ * Visible by default. <Reveal> (components/motion/Reveal.tsx) sets
+ * data-reveal-state="hidden" on itself only after hydrating, and only when it
+ * starts below the fold — crawlers, no-JS readers and re-mounts always see it.
+ */
+[data-reveal] {
+  transition:
+    opacity 650ms var(--ease-out-soft),
+    transform 650ms var(--ease-out-soft);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal-state="hidden"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* ── Notebook page (the camp register) ───────────────────────────
+ * School exercise-book ruling: blue lines, a red margin, dates written
+ * in the margin by hand.
+ */
+.notebook {
+  --margin-w: 4.75rem;
+  position: relative;
+  background-color: var(--color-paper);
+  background-image: linear-gradient(
+    to right,
+    transparent calc(var(--margin-w) - 2px),
+    var(--color-crimson) calc(var(--margin-w) - 2px),
+    var(--color-crimson) var(--margin-w),
+    transparent var(--margin-w)
+  );
+}
+
+@media (min-width: 640px) {
+  .notebook {
+    --margin-w: 7rem;
+  }
+}
+
+/* Blank ruled lines below the last entry, like the rest of the page. */
+.notebook-blank {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(2.75rem - 1px),
+    var(--color-ruling) calc(2.75rem - 1px),
+    var(--color-ruling) 2.75rem
+  );
+}
