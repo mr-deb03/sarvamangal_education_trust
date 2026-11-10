@@ -41,7 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# sanity studio
-/studio/node_modules
-/studio/dist
-/studio/.sanity
+# payload: uploaded files and local SQLite databases
+/media
+*.db
+*.db-journal

@@ -9,7 +9,7 @@ import {
 } from "./content";
 import { seedEvents } from "./events";
 
-/** Local content used when Sanity is not configured (local dev, previews). */
+/** Built-in content used when no database is configured (DATABASE_URI empty). */
 export const seedSource: ContentSource = {
   siteSettings: async () => seedSettings,
   causes: async () => [...seedCauses].sort((a, b) => a.order - b.order),

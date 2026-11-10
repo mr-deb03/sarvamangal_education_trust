@@ -5,6 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Inline object-position from an admin-set focal point; undefined keeps the CSS default. */
+export function focalStyle(image?: { focalPoint?: { x: number; y: number } }) {
+  return image?.focalPoint ? { objectPosition: `${image.focalPoint.x}% ${image.focalPoint.y}%` } : undefined;
+}
+
 /**
  * Link to the donation app. `amount` and `cause` are passed as query params;
  * the donation app does not read them yet (see CLAUDE.md), but they are

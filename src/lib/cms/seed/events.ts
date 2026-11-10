@@ -2,8 +2,8 @@ import type { CampEvent, CauseRef } from "../types";
 
 /**
  * Every event published on the old WordPress site (35, Jan 2016 – Jun 2026),
- * captured Nov 2026. Used only when Sanity is not configured, and as the
- * source for the one-time import into Sanity.
+ * captured Nov 2026. Used when no database is configured, and loaded
+ * into Payload by `npm run seed`.
  *
  * Slugs match the old WordPress URLs exactly (typos included, e.g.
  * "distrbution") so `/old-slug/` can 308 to `/events/old-slug`.

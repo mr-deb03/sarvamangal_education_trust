@@ -15,14 +15,19 @@ export function formatDate(
   return new Intl.DateTimeFormat("en-IN", { ...options, timeZone: "UTC" }).format(asUtc(date));
 }
 
-/** Today's date in India as `YYYY-MM-DD`. Call only inside a `use cache` scope. */
-export function todayInIndia(now: Date) {
+/** The calendar date in India for an instant, as `YYYY-MM-DD`. */
+export function indiaDate(instant: Date) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(now);
+  }).format(instant);
+}
+
+/** Today's date in India. Call only inside a `use cache` scope (it reads the clock). */
+export function todayInIndia(now: Date) {
+  return indiaDate(now);
 }
 
 export function formatPlace(e: Pick<CampEvent, "locality" | "city" | "state">) {

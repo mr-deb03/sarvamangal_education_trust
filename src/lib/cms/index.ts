@@ -4,33 +4,25 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { todayInIndia } from "@/lib/format";
 
-import { isSanityConfigured } from "./sanity/client";
-import { sanitySource } from "./sanity/source";
+import { isPayloadConfigured, payloadSource } from "./payload/source";
 import { seedSource } from "./seed/source";
+import { CMS_TAGS } from "./tags";
 import type { CampEvent, EventTimeline, HomePageData } from "./types";
 
 /**
  * The only module pages and components import content from.
  *
- * Every reader is a `use cache` function tagged with its Sanity document type.
- * Publishing in Sanity fires a webhook to /api/revalidate, which calls
- * `revalidateTag(<type>, "max")`, so pages stay static until content changes.
+ * Every reader is a `use cache` function tagged with its content type.
+ * Saving in the Payload admin (/admin, same app) runs an afterChange hook
+ * (src/payload/hooks/revalidate.ts) that expires the matching tag, so pages
+ * stay static until content changes.
  */
 
-export const CMS_TAGS = {
-  all: "cms",
-  siteSettings: "siteSettings",
-  cause: "cause",
-  event: "event",
-  testimonial: "testimonial",
-  supporter: "supporter",
-  donationTier: "donationTier",
-  faq: "faq",
-} as const;
+export { CMS_TAGS };
 
-const source = isSanityConfigured ? sanitySource : seedSource;
+const source = isPayloadConfigured ? payloadSource : seedSource;
 
-export const contentSourceName = isSanityConfigured ? "sanity" : "seed";
+export const contentSourceName = isPayloadConfigured ? "payload" : "seed";
 
 export async function getSiteSettings() {
   "use cache";

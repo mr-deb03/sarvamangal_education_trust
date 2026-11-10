@@ -1,9 +1,9 @@
 /**
  * Content types the website renders.
  *
- * These are the site's own shapes, not Sanity's. Both content sources
- * (`sanity/source.ts` and `seed/source.ts`) map into them, so components never
- * see a GROQ projection or an image asset reference.
+ * These are the site's own shapes, not Payload's. Both content sources
+ * (`payload/source.ts` and `seed/source.ts`) map into them, so components
+ * never see a Payload document or a media relation.
  */
 
 export type ImageRef = {
@@ -11,8 +11,10 @@ export type ImageRef = {
   alt: string;
   width?: number;
   height?: number;
-  /** Tiny base64 preview from Sanity (`metadata.lqip`), when available. */
+  /** Tiny base64 preview, when the source provides one. */
   blurDataURL?: string;
+  /** Focal point set in the admin, in percent. Used as object-position. */
+  focalPoint?: { x: number; y: number };
 };
 
 export type CauseRef = {
@@ -143,7 +145,7 @@ export type SiteSettings = {
   socials: { platform: SocialPlatform; url: string }[];
 };
 
-/** What every content backend (Sanity, seed) must provide. */
+/** What every content backend (Payload, seed) must provide. */
 export type ContentSource = {
   siteSettings(): Promise<SiteSettings>;
   causes(): Promise<Cause[]>;

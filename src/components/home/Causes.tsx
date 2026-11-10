@@ -6,6 +6,7 @@ import { Reveal } from "@/components/motion/Reveal";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { Cause } from "@/lib/cms/types";
 import { ROUTES } from "@/lib/site";
+import { focalStyle } from "@/lib/utils";
 
 export function Causes({ causes, countByCause }: { causes: Cause[]; countByCause: Record<string, number> }) {
   if (causes.length === 0) return null;
@@ -36,6 +37,7 @@ export function Causes({ causes, countByCause }: { causes: Cause[]; countByCause
                       placeholder={cause.image.blurDataURL ? "blur" : "empty"}
                       blurDataURL={cause.image.blurDataURL}
                       className="object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-[1.04]"
+                      style={focalStyle(cause.image)}
                     />
                   </div>
                   <div className="flex flex-1 flex-col p-5 sm:p-6">

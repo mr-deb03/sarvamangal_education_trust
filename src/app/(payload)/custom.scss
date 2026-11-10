@@ -1,0 +1,33 @@
+// Admin panel tweaks. Uses Payload's theme variables so light and dark modes both work.
+
+// Labelled "Log out" buttons (src/payload/components/LogoutButton.tsx).
+.sarvamangal-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--style-radius-m);
+  border: 1px solid var(--theme-elevation-150);
+  color: var(--theme-elevation-800);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--theme-elevation-100);
+    color: var(--theme-elevation-1000);
+  }
+
+  &--header {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  &--sidebar {
+    padding: 0.5rem 0.875rem;
+  }
+}

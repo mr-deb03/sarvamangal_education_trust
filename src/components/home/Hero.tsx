@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Underlined } from "@/components/ui/Underlined";
 import type { CampEvent, SiteSettings } from "@/lib/cms/types";
+import { focalStyle } from "@/lib/utils";
 import { formatBeneficiaries, formatDate, formatPlace } from "@/lib/format";
 import { ROUTES } from "@/lib/site";
 
@@ -79,6 +80,7 @@ export function Hero({ settings, latest }: { settings: SiteSettings; latest?: Ca
               placeholder={hero.image.blurDataURL ? "blur" : "empty"}
               blurDataURL={hero.image.blurDataURL}
               className="object-cover object-[50%_40%]"
+              style={focalStyle(hero.image)}
             />
           </figure>
 
@@ -91,6 +93,7 @@ export function Hero({ settings, latest }: { settings: SiteSettings; latest?: Ca
                   fill
                   sizes="(min-width: 640px) 18rem, 46vw"
                   className="object-cover object-[30%_50%]"
+                  style={focalStyle(hero.insetImage)}
                 />
               </div>
               {hero.insetCaption ? (
