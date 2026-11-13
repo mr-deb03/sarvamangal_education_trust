@@ -7,7 +7,7 @@ import { todayInIndia } from "@/lib/format";
 import { isPayloadConfigured, payloadSource } from "./payload/source";
 import { seedSource } from "./seed/source";
 import { CMS_TAGS } from "./tags";
-import type { CampEvent, EventTimeline, HomePageData } from "./types";
+import type { AppealView, CampEvent, EventTimeline, HomePageData } from "./types";
 
 /**
  * The only module pages and components import content from.
@@ -101,8 +101,32 @@ export async function getFaqs() {
   return source.faqs();
 }
 
+/**
+ * The live appeal with today's progress, or null when it is off,
+ * incomplete or past its end date. Cached for a day (it reads the clock) and
+ * refreshed immediately when the appeal is saved in /admin.
+ */
+export async function getAppeal(): Promise<AppealView | null> {
+  "use cache";
+  cacheTag(CMS_TAGS.all, CMS_TAGS.appeal);
+  cacheLife("days");
+
+  const appeal = await source.appeal();
+  if (!appeal) return null;
+
+  const today = todayInIndia(new Date());
+  if (appeal.endDate && appeal.endDate < today) return null;
+
+  const DAY = 86_400_000;
+  return {
+    ...appeal,
+    percent: appeal.goal ? Math.min(100, Math.round((appeal.soFar / appeal.goal) * 100)) : undefined,
+    daysLeft: appeal.endDate ? Math.round((Date.parse(appeal.endDate) - Date.parse(today)) / DAY) : undefined,
+  };
+}
+
 export async function getHomePageData(): Promise<HomePageData> {
-  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs] =
+  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal] =
     await Promise.all([
       getSiteSettings(),
       getCauses(),
@@ -111,8 +135,9 @@ export async function getHomePageData(): Promise<HomePageData> {
       getSupporters(),
       getDonationTiers(),
       getFaqs(),
+      getAppeal(),
     ]);
-  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs };
+  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal };
 }
 
 export type * from "./types";

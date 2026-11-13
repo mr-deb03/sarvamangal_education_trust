@@ -101,9 +101,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'site-settings': SiteSetting;
+    'fundraising-appeal': FundraisingAppeal;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'fundraising-appeal': FundraisingAppealSelect<false> | FundraisingAppealSelect<true>;
   };
   locale: null;
   widgets: {
@@ -775,6 +777,56 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * The current appeal on the homepage. Update “So far” as donations come in or as more is given out.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fundraising-appeal".
+ */
+export interface FundraisingAppeal {
+  id: number;
+  enabled?: boolean | null;
+  /**
+   * What the appeal is for, e.g. “Pouch distribution” or “Fund the next free health camp”.
+   */
+  title?: string | null;
+  /**
+   * One or two sentences on what donations make possible.
+   */
+  description?: string | null;
+  measure?: ('money' | 'items') | null;
+  /**
+   * Rupees raised, or how many given out.
+   */
+  raisedAmount?: number | null;
+  /**
+   * Shown after the number, e.g. “pouches distributed”.
+   */
+  itemLabel?: string | null;
+  /**
+   * Optional. Leave empty for no limit (no progress bar).
+   */
+  goalAmount?: number | null;
+  /**
+   * Optional.
+   */
+  donorCount?: number | null;
+  atLeast?: boolean | null;
+  /**
+   * Optional. The appeal disappears from the homepage after this date.
+   */
+  endDate?: string | null;
+  /**
+   * Optional. Its photo is used if you don’t add one below.
+   */
+  cause?: (number | null) | Cause;
+  /**
+   * Optional.
+   */
+  image?: (number | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -843,6 +895,27 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fundraising-appeal_select".
+ */
+export interface FundraisingAppealSelect<T extends boolean = true> {
+  enabled?: T;
+  title?: T;
+  description?: T;
+  measure?: T;
+  raisedAmount?: T;
+  itemLabel?: T;
+  goalAmount?: T;
+  donorCount?: T;
+  atLeast?: T;
+  endDate?: T;
+  cause?: T;
+  image?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

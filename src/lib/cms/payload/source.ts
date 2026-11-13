@@ -7,12 +7,13 @@ import { indiaDate } from "@/lib/format";
 import type {
   Cause as PCause,
   Event as PEvent,
+  FundraisingAppeal as PAppeal,
   Media as PMedia,
   SiteSetting as PSiteSettings,
 } from "@/payload-types";
 
 import { seedSettings } from "../seed/content";
-import type { CampEvent, Cause, ContentSource, ImageRef, SiteSettings } from "../types";
+import type { Appeal, CampEvent, Cause, ContentSource, ImageRef, SiteSettings } from "../types";
 
 /**
  * Payload → site types, through the Local API (direct database access, no
@@ -187,6 +188,34 @@ async function faqs() {
   return docs.map((f) => ({ id: String(f.id), question: f.question, answer: f.answer }));
 }
 
+async function appeal(): Promise<Appeal | null> {
+  // depth 2: the cause's own photo is the fallback image.
+  const raw = (await (await payload()).findGlobal({ slug: "fundraising-appeal", depth: 2 })) as PAppeal;
+  if (!raw.enabled || !raw.title) return null;
+
+  const measure = raw.measure === "items" ? "items" : "money";
+  const itemLabel = raw.itemLabel?.trim() || undefined;
+  const goal = raw.goalAmount || undefined;
+  const soFar = raw.raisedAmount ?? 0;
+  // Nothing honest to show: an item count with no name, or no goal and nothing so far.
+  if ((measure === "items" && !itemLabel) || (!goal && soFar <= 0)) return null;
+
+  const cause = raw.cause && typeof raw.cause === "object" ? raw.cause : null;
+  return {
+    title: raw.title,
+    description: raw.description?.trim() || undefined,
+    measure,
+    itemLabel,
+    soFar,
+    atLeast: Boolean(raw.atLeast),
+    goal,
+    donors: raw.donorCount ?? undefined,
+    endDate: toDate(raw.endDate),
+    cause: causeRef(cause),
+    image: toImage(raw.image, raw.title) ?? (cause ? toImage(cause.image, cause.title) : undefined),
+  };
+}
+
 export const payloadSource: ContentSource = {
   siteSettings,
   causes,
@@ -195,4 +224,5 @@ export const payloadSource: ContentSource = {
   supporters,
   donationTiers,
   faqs,
+  appeal,
 };

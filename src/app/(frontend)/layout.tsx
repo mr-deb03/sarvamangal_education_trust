@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Eczar, Mukta } from "next/font/google";
+import { Mukta, Playfair_Display } from "next/font/google";
 
 import { Analytics } from "@/components/seo/Analytics";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -12,10 +12,14 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 import "./globals.css";
 
-/** Display: Eczar — Latin + Devanagari, by Indian type designer Vaibhav Singh. */
-const eczar = Eczar({
-  subsets: ["latin", "devanagari"],
-  variable: "--font-eczar",
+/**
+ * Display: Playfair Display — headings and titles (owner's choice, Nov 2026).
+ * It has no Devanagari, so `--font-display` falls back to Mukta for Hindi text
+ * and the ₹ sign (see globals.css).
+ */
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -56,7 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [settings, causes] = await Promise.all([getSiteSettings(), getCauses()]);
 
   return (
-    <html lang="en-IN" className={`${eczar.variable} ${mukta.variable}`}>
+    <html lang="en-IN" className={`${playfair.variable} ${mukta.variable}`}>
       <body className="flex min-h-dvh flex-col antialiased">
         <a
           href="#main"

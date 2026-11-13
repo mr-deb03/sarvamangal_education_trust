@@ -56,7 +56,7 @@ Section rhythm on the homepage: white → paper-2 → white (register) → **ink
 
 | Role | Face | Notes |
 |---|---|---|
-| Display | **Eczar** (Rosetta, Vaibhav Singh) | Latin + Devanagari; 600 for headings, tracking −0.015 to −0.022em |
+| Display | **Playfair Display** (owner's choice, Nov 2026) | Headings and titles, 600. No Devanagari: `--font-display` falls back to Mukta for Hindi and ₹ |
 | Body | **Mukta** (Ek Type) 400/600 | Devanagari subset also supplies ₹ |
 | Labels | Mukta 600, uppercase, 0.14em tracking | `eyebrow` utility, above section titles |
 

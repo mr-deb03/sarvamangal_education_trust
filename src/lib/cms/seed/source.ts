@@ -18,4 +18,6 @@ export const seedSource: ContentSource = {
   supporters: async () => seedSupporters,
   donationTiers: async () => seedDonationTiers,
   faqs: async () => seedFaqs,
+  // No built-in appeal: goals and amounts only ever come from the trust, via /admin.
+  appeal: async () => null,
 };

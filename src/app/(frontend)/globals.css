@@ -31,7 +31,8 @@
 
 /* Font families point at next/font variables set on <html> in layout.tsx. */
 @theme inline {
-  --font-display: var(--font-eczar), Georgia, serif;
+  /* Mukta after Playfair: Hindi text and the ₹ sign in headings use Mukta's glyphs. */
+  --font-display: var(--font-playfair), var(--font-mukta), Georgia, serif;
   --font-sans: var(--font-mukta), system-ui, sans-serif;
 }
 
@@ -71,6 +72,16 @@
 
   p {
     text-wrap: pretty;
+  }
+
+  /* Playfair Display defaults to old-style figures (digits that dip below the
+     line). Amounts, years and stats read better with full-height digits. */
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-variant-numeric: lining-nums;
   }
 
   /* Crimson ring on light surfaces; dark sections switch it to marigold. */
@@ -177,6 +188,17 @@
 [data-reveal-state="hidden"] {
   opacity: 0;
   transform: translateY(18px);
+}
+
+/* Appeal progress bar: fills from the left as the card scrolls into view.
+   Full width by default (no JS, reduced motion, crawlers). */
+.appeal-fill {
+  transform-origin: left center;
+  transition: transform 1100ms var(--ease-out-soft) 250ms;
+}
+
+[data-reveal-state="hidden"] .appeal-fill {
+  transform: scaleX(0);
 }
 
 /* ── Notebook page (the camp register) ───────────────────────────

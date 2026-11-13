@@ -1,3 +1,4 @@
+import { Appeal } from "@/components/home/Appeal";
 import { CampRegister } from "@/components/home/CampRegister";
 import { Causes } from "@/components/home/Causes";
 import { Faq } from "@/components/home/Faq";
@@ -19,13 +20,16 @@ export const metadata = pageMetadata({
 });
 
 export default async function HomePage() {
-  const { settings, causes, timeline, testimonials, supporters, donationTiers, faqs } = await getHomePageData();
+  const { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal } =
+    await getHomePageData();
 
   return (
     <>
       <Hero settings={settings} latest={timeline.past[0]} />
       <Causes causes={causes} countByCause={timeline.countByCause} />
       <CampRegister timeline={timeline} stats={settings.impactStats} whatsappNumber={settings.whatsappNumber} />
+      {/* Shown only while the trust has a live appeal switched on in /admin. */}
+      {appeal ? <Appeal appeal={appeal} donateUrl={settings.donateUrl} /> : null}
       <GiveSection settings={settings} tiers={donationTiers} />
       <Voices testimonials={testimonials} supporters={supporters} />
       <GetInvolved settings={settings} />

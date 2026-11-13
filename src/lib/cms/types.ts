@@ -145,6 +145,34 @@ export type SiteSettings = {
   socials: { platform: SocialPlatform; url: string }[];
 };
 
+/** The current appeal (Payload global "fundraising-appeal"). */
+export type Appeal = {
+  title: string;
+  description?: string;
+  /** What the numbers count: rupees raised, or things given out. */
+  measure: "money" | "items";
+  /** For "items": what the number counts, e.g. "pouches distributed". */
+  itemLabel?: string;
+  /** Rupees raised or things given out so far. */
+  soFar: number;
+  /** Show `soFar` as a minimum ("1,500+"). */
+  atLeast: boolean;
+  /** Optional: without a goal the appeal is open-ended (no progress bar). */
+  goal?: number;
+  donors?: number;
+  /** `YYYY-MM-DD`; the appeal hides after this date. */
+  endDate?: string;
+  cause?: CauseRef;
+  image?: ImageRef;
+};
+
+/** An appeal ready to render: progress worked out for today. */
+export type AppealView = Appeal & {
+  /** 0–100, capped. Only when there is a goal. */
+  percent?: number;
+  daysLeft?: number;
+};
+
 /** What every content backend (Payload, seed) must provide. */
 export type ContentSource = {
   siteSettings(): Promise<SiteSettings>;
@@ -155,6 +183,8 @@ export type ContentSource = {
   supporters(): Promise<Supporter[]>;
   donationTiers(): Promise<DonationTier[]>;
   faqs(): Promise<Faq[]>;
+  /** Null when switched off or incomplete. */
+  appeal(): Promise<Appeal | null>;
 };
 
 export type HomePageData = {
@@ -165,4 +195,6 @@ export type HomePageData = {
   supporters: Supporter[];
   donationTiers: DonationTier[];
   faqs: Faq[];
+  /** Null when there is no live appeal. */
+  appeal: AppealView | null;
 };

@@ -37,6 +37,8 @@ npx tsc --noEmit
 
 npm run seed              # load the original content (35 events etc.) into Payload; skips existing
 npm run seed:force        # …and overwrite existing records with the seed values
+                          # (scripts can't expire a running server's cache: restart `npm run dev`,
+                          #  or save the record in /admin, to see script-loaded changes)
 npm run generate:types    # after changing a collection → src/payload-types.ts
 npm run generate:importmap   # after adding/changing admin components
 npm run migrate:create    # Postgres: migration after schema changes; `npm run migrate` on deploy
@@ -103,6 +105,13 @@ src/lib/cms/
   team member. Uploads go to `/media` on disk — for serverless hosting add
   `@payloadcms/storage-vercel-blob` or `@payloadcms/storage-s3`.
 - Site settings is a Payload global; any empty field falls back to `seed/content.ts`.
+- **Fundraising appeal** (global `fundraising-appeal`, admin → Homepage): counts money
+  (₹) or things given out ("pouches distributed"), with an optional goal — with a goal
+  it shows a progress bar, without one the running total ("1,500+ … so far, and
+  counting"). `getAppeal()` hides it unless switched on and complete, and after its
+  end date; it renders between the register and the Give section
+  (`components/home/Appeal.tsx`). There is deliberately **no seed appeal** — figures
+  only ever come from the trust. Live now: free pouch distribution, 1,500+, no limit.
 - **Adding a field or content type**: collection in `src/payload/` → `npm run
   generate:types` → site type in `types.ts` → mapper in `payload/source.ts` +
   seed in `seed/` → getter in `cms/index.ts` (`"use cache"` + tag) → map the
@@ -135,7 +144,8 @@ src/lib/cms/
 - **Tokens only** (`bg-ink`, `text-crimson`, `font-display`, `eyebrow`…) — no raw
   hex in components. `on-ink` utility for dark sections (also swaps the focus ring).
 - **No handwriting or script fonts** — the owner rejected them. Two faces only:
-  Eczar (headings) and Mukta (everything else). Labels above titles use the
+  Playfair Display (headings and titles; owner's choice) and Mukta (everything
+  else, and the fallback for Hindi/₹ inside headings). Labels above titles use the
   `eyebrow` utility (small capitals). Hero key words get the crimson
   `.accent-underline` (an underline, not a highlight — owner's call).
 - Buttons are links: `ButtonLink` / `buttonClasses()`. Touch targets ≥ 44px.

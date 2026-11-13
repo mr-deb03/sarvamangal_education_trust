@@ -27,6 +27,7 @@ const BY_COLLECTION: Record<string, CmsTag[]> = {
 
 const BY_GLOBAL: Record<string, CmsTag[]> = {
   "site-settings": [CMS_TAGS.siteSettings],
+  "fundraising-appeal": [CMS_TAGS.appeal],
 };
 
 function refresh(tags: CmsTag[] | undefined) {
