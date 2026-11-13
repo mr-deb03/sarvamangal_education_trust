@@ -144,6 +144,12 @@ export const seedTestimonials: Testimonial[] = [
     role: "Co-founder, SITH Company",
     supporterSince: 2015,
     causeSlug: "education",
+    photo: {
+      src: "/images/testimonials/mahendra-dora.jpg",
+      alt: "Mahendra Dora, a Sarvamangal Education Trust supporter",
+      width: 400,
+      height: 400,
+    },
   },
   {
     id: "seed-samir-shinde",
@@ -153,6 +159,12 @@ export const seedTestimonials: Testimonial[] = [
     role: "Owner, Hayosha Insurance",
     supporterSince: 2017,
     causeSlug: "spirituality",
+    photo: {
+      src: "/images/testimonials/samir-shinde.jpg",
+      alt: "Samir Shinde, a Sarvamangal Education Trust supporter",
+      width: 400,
+      height: 400,
+    },
   },
   {
     id: "seed-rammani-gupta",
@@ -162,6 +174,12 @@ export const seedTestimonials: Testimonial[] = [
     role: "Sarvam Associates",
     supporterSince: 2020,
     causeSlug: "health",
+    photo: {
+      src: "/images/testimonials/rammani-gupta.jpg",
+      alt: "Rammani Gupta, a Sarvamangal Education Trust supporter",
+      width: 400,
+      height: 400,
+    },
   },
 ];
 

@@ -158,6 +158,7 @@ async function seed(payload: Payload) {
 
   console.log("Testimonials, supporters, donation amounts, FAQs…");
   for (const [i, t] of seedTestimonials.entries()) {
+    const photo = t.photo ? await uploadImage(payload, t.photo, `testimonial-${t.id.replace(/^seed-/, "")}`) : null;
     await upsert(
       payload,
       "testimonials",
@@ -168,6 +169,7 @@ async function seed(payload: Payload) {
         role: t.role,
         supporterSince: t.supporterSince ?? null,
         cause: t.causeSlug ? causeIds[t.causeSlug] : null,
+        photo,
         order: (i + 1) * 10,
       },
       t.name,
