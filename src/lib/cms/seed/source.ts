@@ -20,4 +20,6 @@ export const seedSource: ContentSource = {
   faqs: async () => seedFaqs,
   // No built-in appeal: goals and amounts only ever come from the trust, via /admin.
   appeal: async () => null,
+  // Same for the ticker's totals: only the trust's own figures, entered in /admin.
+  liveUpdates: async () => ({ counters: [] }),
 };

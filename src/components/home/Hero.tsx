@@ -1,141 +1,157 @@
-import { ArrowDown, BadgeCheck, Check, HeartHandshake, Landmark, ReceiptText } from "lucide-react";
+import { ArrowDown, BadgeCheck, Landmark, ReceiptText } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import type { CSSProperties } from "react";
 
-import { ButtonLink } from "@/components/ui/ButtonLink";
 import { Underlined } from "@/components/ui/Underlined";
-import type { CampEvent, SiteSettings } from "@/lib/cms/types";
-import { focalStyle } from "@/lib/utils";
-import { formatBeneficiaries, formatDate, formatPlace } from "@/lib/format";
-import { ROUTES } from "@/lib/site";
+import type { DonationTier, EventTimeline, SiteSettings } from "@/lib/cms/types";
+import { eventDayLabel } from "@/lib/event-links";
+import { cn, focalStyle } from "@/lib/utils";
 
-const delay = (ms: number) => ({ "--rise-delay": `${ms}ms` }) as CSSProperties;
+import { HeroGive } from "./HeroGive";
+import { fillWall, WallTile, wallPhotos } from "./PhotoWall";
 
-export function Hero({ settings, latest }: { settings: SiteSettings; latest?: CampEvent }) {
+/** Tiles in the wall: 4×3 on phones, 6×4 on tablets, 9×4 on desktop, minus the 2×2 photo. */
+const TILES = 32;
+const tileVisibility = (i: number) => (i >= 20 ? "hidden lg:block" : i >= 8 ? "hidden sm:block" : undefined);
+
+/**
+ * Opening section: a wall of photos from every camp on the register, with the
+ * headline and the giving box on a card in front of it.
+ */
+export function Hero({
+  settings,
+  timeline,
+  tiers,
+}: {
+  settings: SiteSettings;
+  timeline: EventTimeline;
+  tiers: DonationTier[];
+}) {
   const { hero } = settings;
+  // Camps that have happened, newest first — the wall shows what was done, not what's planned.
+  const photos = wallPhotos(timeline.past);
+  const tiles = fillWall(photos, TILES);
+  const firstYear = timeline.past.at(-1)?.startDate.slice(0, 4);
+  const next = timeline.upcoming[0];
 
   return (
-    <section aria-labelledby="hero-title" className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-7xl gap-x-12 gap-y-9 px-4 pt-4 pb-16 sm:px-6 sm:pt-8 lg:grid-cols-12 lg:gap-y-12 lg:px-8 lg:pt-16 lg:pb-28">
-        <div className="flex flex-col justify-center lg:col-span-6">
-          <p className="rise eyebrow text-crimson">{hero.eyebrow}</p>
-
-          <h1
-            id="hero-title"
-            className="mt-4 text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.022em] sm:text-6xl lg:text-[2.9rem] xl:text-[3.7rem]"
+    <section aria-labelledby="hero-title" className="relative bg-ink">
+      <div className="relative lg:min-h-[min(calc(100svh-7.75rem),50rem)]">
+        {tiles.length > 0 ? (
+          <div
+            aria-hidden
+            className="grid aspect-[4/3] grid-flow-dense grid-cols-4 grid-rows-3 gap-[3px] sm:aspect-[3/2] sm:grid-cols-6 sm:grid-rows-4 lg:absolute lg:inset-0 lg:aspect-auto lg:grid-cols-9"
           >
-            {hero.headlineLines.map((line, i) => (
-              <span key={line}>
-                {/* The space keeps the lines apart in the text search engines read. */}
-                {i > 0 ? " " : null}
-                <span className="rise block" style={delay(80 + i * 140)}>
-                  <Underlined text={line} words={hero.highlightWords} delayMs={700 + i * 280} />
-                </span>
-              </span>
+            <div className="wall-tile relative col-span-2 col-start-2 row-span-2 row-start-1 overflow-hidden bg-ink-soft sm:col-start-3 lg:col-start-6 lg:row-start-2">
+              <Image
+                src={hero.image.src}
+                alt=""
+                fill
+                preload
+                quality={75}
+                sizes="(min-width: 1024px) 22vw, (min-width: 640px) 34vw, 50vw"
+                placeholder={hero.image.blurDataURL ? "blur" : "empty"}
+                blurDataURL={hero.image.blurDataURL}
+                className="object-cover"
+                style={focalStyle(hero.image)}
+              />
+            </div>
+            {tiles.map((photo, i) => (
+              <WallTile
+                key={`${photo.event.slug}-${i}`}
+                photo={photo}
+                index={i}
+                sizes="(min-width: 1024px) 11vw, (min-width: 640px) 17vw, 25vw"
+                className={tileVisibility(i)}
+              />
             ))}
-          </h1>
-
-          <p className="rise mt-6 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl" style={delay(380)}>
-            {hero.intro}
-          </p>
-
-          <div className="rise mt-8 flex flex-wrap gap-3" style={delay(480)}>
-            <ButtonLink href={settings.donateUrl} size="lg">
-              <HeartHandshake aria-hidden />
-              Donate now
-            </ButtonLink>
-            <ButtonLink href="#register" variant="secondary" size="lg">
-              See our camps
-              <ArrowDown aria-hidden />
-            </ButtonLink>
           </div>
+        ) : null}
 
-          <ul className="rise mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-muted" style={delay(560)}>
-            <li className="flex items-center gap-1.5">
-              <BadgeCheck aria-hidden className="size-4 text-crimson" />
-              80G tax benefit
-            </li>
-            <li className="flex items-center gap-1.5">
-              <ReceiptText aria-hidden className="size-4 text-crimson" />
-              Receipt on email
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Landmark aria-hidden className="size-4 text-crimson" />
-              Registered public trust
-            </li>
-          </ul>
-        </div>
+        {/* Desktop: the wall darkens behind the card so the photos read as depth, not noise. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 hidden w-[64%] bg-linear-to-r from-ink/92 via-ink/60 to-transparent lg:block"
+        />
 
-        {/* Photo first on phones: the children's faces are the hook. */}
-        <div className="relative order-first sm:mb-8 lg:order-none lg:col-span-6 lg:mb-0">
-          <figure className="relative aspect-[16/11] overflow-hidden rounded-[1.5rem] bg-paper-2 shadow-[0_40px_80px_-40px_rgb(23_25_59/0.45)] sm:aspect-[6/5] sm:rounded-[1.75rem] lg:aspect-auto lg:h-full lg:min-h-[34rem]">
-            <Image
-              src={hero.image.src}
-              alt={hero.image.alt}
-              fill
-              preload
-              quality={80}
-              sizes="(min-width: 1280px) 56vw, (min-width: 1024px) 48vw, 100vw"
-              placeholder={hero.image.blurDataURL ? "blur" : "empty"}
-              blurDataURL={hero.image.blurDataURL}
-              className="object-cover object-[50%_40%]"
-              style={focalStyle(hero.image)}
-            />
-          </figure>
+        {/* The wrapper lets the pointer through to the wall; only the card takes it. */}
+        <div className="pointer-events-none relative mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:flex lg:min-h-[inherit] lg:items-center lg:px-8 lg:py-14">
+          <div
+            className={cn(
+              "card-lift pointer-events-auto relative rounded-[1.75rem] bg-white p-6 shadow-[0_50px_90px_-40px_rgb(0_0_0/0.75)] sm:p-9 lg:w-[35rem] lg:p-10",
+              tiles.length > 0 ? "-mt-14 sm:-mt-28 lg:mt-0" : "mt-8",
+            )}
+          >
+            <p className="eyebrow text-crimson">{hero.eyebrow}</p>
+            <h1
+              id="hero-title"
+              className="mt-3 text-[2.15rem] leading-[1.06] font-semibold tracking-[-0.022em] sm:text-5xl lg:text-[2.75rem]"
+            >
+              {hero.headlineLines.map((line, i) => (
+                <span key={line}>
+                  {/* The space keeps the lines apart in the text search engines read. */}
+                  {i > 0 ? " " : null}
+                  <span className="block">
+                    <Underlined text={line} words={hero.highlightWords} delayMs={600 + i * 280} />
+                  </span>
+                </span>
+              ))}
+            </h1>
+            <p className="mt-4 text-[1.05rem] leading-relaxed text-ink-soft sm:text-lg">{hero.intro}</p>
 
-          {hero.insetImage ? (
-            <figure className="absolute -bottom-8 left-4 hidden w-[46%] max-w-[18rem] overflow-hidden rounded-2xl border-[5px] border-white bg-white shadow-[0_24px_48px_-20px_rgb(23_25_59/0.5)] sm:block lg:-bottom-10 lg:-left-10">
-              <div className="relative aspect-[4/3]">
-                <Image
-                  src={hero.insetImage.src}
-                  alt={hero.insetImage.alt}
-                  fill
-                  sizes="(min-width: 640px) 18rem, 46vw"
-                  className="object-cover object-[30%_50%]"
-                  style={focalStyle(hero.insetImage)}
-                />
-              </div>
-              {hero.insetCaption ? (
-                <figcaption className="px-2 pt-1.5 pb-1 text-sm leading-snug font-semibold text-ink-soft">
-                  {hero.insetCaption}
-                </figcaption>
-              ) : null}
-            </figure>
-          ) : null}
+            <div className="mt-6 border-t border-line pt-5">
+              <HeroGive tiers={tiers} donateUrl={settings.donateUrl} />
+            </div>
 
-          {latest ? <LatestCamp event={latest} /> : null}
+            <ul className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-sm text-ink-muted">
+              <li className="flex items-center gap-1.5">
+                <BadgeCheck aria-hidden className="size-4 text-crimson" />
+                80G tax benefit
+              </li>
+              <li className="flex items-center gap-1.5">
+                <ReceiptText aria-hidden className="size-4 text-crimson" />
+                Receipt on email
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Landmark aria-hidden className="size-4 text-crimson" />
+                Registered public trust
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-    </section>
-  );
-}
 
-function LatestCamp({ event }: { event: CampEvent }) {
-  return (
-    <Link
-      href={ROUTES.event(event.slug)}
-      className="group absolute top-4 right-4 hidden w-[17.5rem] rounded-2xl bg-white/95 p-4 shadow-[0_20px_40px_-18px_rgb(23_25_59/0.45)] ring-1 ring-line backdrop-blur transition-transform duration-300 motion-safe:hover:-translate-y-0.5 sm:block lg:-top-5 lg:-right-4"
-    >
-      <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.12em] text-crimson uppercase">
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full rounded-full bg-crimson opacity-60 motion-safe:animate-ping" />
-          <span className="relative inline-flex size-2 rounded-full bg-crimson" />
-        </span>
-        Latest from the register
-      </span>
-      <span className="mt-2 block font-display text-lg leading-snug text-ink group-hover:underline">
-        {event.title}
-      </span>
-      <span className="mt-1 block text-sm text-ink-muted">
-        {formatDate(event.startDate)} · {formatPlace(event)}
-      </span>
-      {event.beneficiaries ? (
-        <span className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-crimson">
-          <Check aria-hidden className="size-4" />
-          {formatBeneficiaries(event.beneficiaries)}
-        </span>
+      {photos.length > 0 ? (
+        <div className="on-ink relative border-t border-white/10">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-3 text-[0.95rem] text-ink-200 sm:px-6 lg:px-8">
+            <p>
+              Photos from our own camps — {timeline.total} on the register
+              {firstYear ? ` since ${firstYear}` : ""}.
+            </p>
+            {next ? (
+              <a
+                href="#coming-up"
+                className="inline-flex min-h-11 items-center gap-2 font-semibold text-white transition-colors hover:text-marigold"
+              >
+                <span aria-hidden className="relative flex size-2">
+                  <span className="absolute inline-flex size-full rounded-full bg-marigold opacity-60 motion-safe:animate-ping" />
+                  <span className="relative inline-flex size-2 rounded-full bg-marigold" />
+                </span>
+                Next camp: {eventDayLabel(next)}
+                {next.locality || next.city ? ` · ${next.locality ?? next.city}` : ""}
+                <ArrowDown aria-hidden className="size-4" />
+              </a>
+            ) : (
+              <a
+                href="#register"
+                className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white transition-colors hover:text-marigold"
+              >
+                See the register
+                <ArrowDown aria-hidden className="size-4" />
+              </a>
+            )}
+          </div>
+        </div>
       ) : null}
-    </Link>
+    </section>
   );
 }

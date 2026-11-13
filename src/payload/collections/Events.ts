@@ -75,6 +75,18 @@ export const Events: CollectionConfig = {
               maxLength: 220,
               admin: { description: "One or two sentences. Shown on cards and as the Google description." },
             },
+            {
+              name: "highlights",
+              label: "At the camp",
+              type: "array",
+              maxRows: 8,
+              labels: { singular: "Item", plural: "Items" },
+              admin: {
+                description:
+                  "What people get there, one per line, e.g. “Free BP and sugar check”, “Eye check-up”. Shown on the homepage while the camp is coming up.",
+              },
+              fields: [{ name: "item", type: "text", required: true, maxLength: 60 }],
+            },
             { name: "body", label: "Full write-up", type: "richText" },
           ],
         },

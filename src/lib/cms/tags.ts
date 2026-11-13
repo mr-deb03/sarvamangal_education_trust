@@ -13,6 +13,7 @@ export const CMS_TAGS = {
   donationTier: "donationTier",
   faq: "faq",
   appeal: "appeal",
+  liveUpdates: "liveUpdates",
 } as const;
 
 export type CmsTag = (typeof CMS_TAGS)[keyof typeof CMS_TAGS];

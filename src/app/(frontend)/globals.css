@@ -190,6 +190,79 @@
   transform: translateY(18px);
 }
 
+/* ── Photo wall (components/home/PhotoWall.tsx) ─────────────────
+ * Tiles wave in from the top left on load; the hero card lifts into place.
+ * Decorative only — the card's text is never hidden, and nothing moves under
+ * reduced motion.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .wall-tile {
+    animation: tile-in 700ms var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+  }
+
+  .card-lift {
+    animation: card-lift 850ms var(--ease-out-soft) 120ms both;
+  }
+}
+
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes card-lift {
+  from {
+    transform: translateY(28px);
+  }
+}
+
+/* ── Live ticker (components/home/LiveTicker.tsx) ────────────────
+ * Two identical copies slide left by one copy's width, so the loop is seamless.
+ * Paused on hover. Under reduced motion it doesn't move: one copy, without
+ * repeats, scrollable sideways.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .ticker-track {
+    animation: ticker var(--ticker-duration, 40s) linear infinite;
+  }
+
+  .ticker:hover .ticker-track {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ticker [data-copy="1"],
+  .ticker [data-repeat] {
+    display: none;
+  }
+}
+
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* The camp register's date column. */
+.register {
+  --margin-w: 4.75rem;
+}
+
+@media (min-width: 640px) {
+  .register {
+    --margin-w: 7rem;
+  }
+}
+
 /* Appeal progress bar: fills from the left as the card scrolls into view.
    Full width by default (no JS, reduced motion, crawlers). */
 .appeal-fill {
@@ -201,9 +274,8 @@
   transform: scaleX(0);
 }
 
-/* ── Notebook page (the camp register) ───────────────────────────
- * School exercise-book ruling: blue lines, a red margin, dates written
- * in the margin by hand.
+/* ── Notebook page (the 404 page) ────────────────────────────────
+ * School exercise-book ruling: a red margin line.
  */
 .notebook {
   --margin-w: 4.75rem;
@@ -224,13 +296,3 @@
   }
 }
 
-/* Blank ruled lines below the last entry, like the rest of the page. */
-.notebook-blank {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(2.75rem - 1px),
-    var(--color-ruling) calc(2.75rem - 1px),
-    var(--color-ruling) 2.75rem
-  );
-}

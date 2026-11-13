@@ -1,4 +1,4 @@
-import { ArrowRight, Check, MapPin, MessageCircle } from "lucide-react";
+import { ArrowRight, ArrowUp, Check, MapPin, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -6,18 +6,17 @@ import { Reveal } from "@/components/motion/Reveal";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { CampEvent, EventTimeline, ImpactStat } from "@/lib/cms/types";
+import { eventDayLabel } from "@/lib/event-links";
 import { formatBeneficiaries, formatDate, formatPlace } from "@/lib/format";
 import { ROUTES } from "@/lib/site";
-import { cn, whatsappHref } from "@/lib/utils";
+import { whatsappHref } from "@/lib/utils";
 
 const PAST_ON_PAGE = 6;
 
 /**
- * The camp register — the landing page's signature.
- *
- * Events from the CMS written into a school exercise book: blue ruled lines,
- * a red margin, the date in the margin. Upcoming camps sit on a dashed,
- * tinted row marked "Coming up", because they are not done yet.
+ * The camp register: events from the CMS as a dated list, newest first.
+ * Upcoming camps sit on a dashed, tinted row marked "Coming up", because they
+ * are not done yet. Kept quiet — the photo wall is the page's one bold element.
  */
 export function CampRegister({
   timeline,
@@ -63,8 +62,8 @@ export function CampRegister({
         </div>
 
         <Reveal className="lg:col-span-8">
-          <div className="notebook overflow-hidden rounded-[1.25rem] shadow-[0_40px_70px_-40px_rgb(23_25_59/0.45)] ring-1 ring-line">
-            <div className="grid grid-cols-[var(--margin-w)_1fr] border-b-2 border-ruling">
+          <div className="register overflow-hidden rounded-[1.25rem] bg-white shadow-[0_40px_70px_-45px_rgb(23_25_59/0.4)] ring-1 ring-line">
+            <div className="grid grid-cols-[var(--margin-w)_1fr] border-b border-line bg-paper-2/70">
               <p className="eyebrow py-4 pr-3 text-right text-[0.7rem] text-pencil sm:pr-5">Date</p>
               <p className="flex items-baseline justify-between gap-4 py-4 pr-4 pl-4 sm:pr-6 sm:pl-6">
                 <span className="eyebrow text-[0.7rem] text-pencil">Camp · place · people served</span>
@@ -72,10 +71,27 @@ export function CampRegister({
             </div>
 
             <ol>
-              {timeline.upcoming.length > 0 ? (
-                timeline.upcoming.slice(0, 2).map((e) => <Entry key={e.id} event={e} upcoming />)
+              {/* Upcoming camps have their own section (UpcomingCamps); the register just points to it. */}
+              {timeline.upcoming[0] ? (
+                <li className="grid grid-cols-[var(--margin-w)_1fr] border-b border-dashed border-line bg-marigold-soft/35">
+                  <p className="py-5 pr-3 text-right font-semibold text-pencil sm:pr-5">Next</p>
+                  <div className="py-5 pr-4 pl-4 sm:pr-6 sm:pl-6">
+                    <p className="leading-snug font-semibold text-ink-soft">
+                      {timeline.upcoming.length === 1
+                        ? `${timeline.upcoming[0].title} — ${eventDayLabel(timeline.upcoming[0])}`
+                        : `${timeline.upcoming.length} camps coming up`}
+                    </p>
+                    <a
+                      href="#coming-up"
+                      className="mt-1 inline-flex min-h-11 items-center gap-1 text-[0.95rem] font-semibold text-crimson underline decoration-crimson/40 underline-offset-4 hover:decoration-crimson sm:min-h-0"
+                    >
+                      {timeline.upcoming.length === 1 ? "See the details" : "See the dates"}
+                      <ArrowUp aria-hidden className="size-4" />
+                    </a>
+                  </div>
+                </li>
               ) : (
-                <li className="grid grid-cols-[var(--margin-w)_1fr] border-b border-dashed border-ruling bg-marigold-soft/30">
+                <li className="grid grid-cols-[var(--margin-w)_1fr] border-b border-dashed border-line bg-marigold-soft/35">
                   <p className="py-5 pr-3 text-right font-semibold text-pencil sm:pr-5">Next</p>
                   <div className="py-5 pr-4 pl-4 sm:pr-6 sm:pl-6">
                     <p className="leading-snug font-semibold text-ink-soft">Next camp: date being fixed</p>
@@ -99,7 +115,6 @@ export function CampRegister({
               ))}
             </ol>
 
-            <div aria-hidden className="notebook-blank h-[5.5rem]" />
           </div>
         </Reveal>
       </div>
@@ -107,15 +122,10 @@ export function CampRegister({
   );
 }
 
-function Entry({ event, upcoming = false }: { event: CampEvent; upcoming?: boolean }) {
+function Entry({ event }: { event: CampEvent }) {
   return (
-    <li
-      className={cn(
-        "group relative grid grid-cols-[var(--margin-w)_1fr] border-b border-ruling transition-colors hover:bg-paper-2/70",
-        upcoming && "border-dashed bg-marigold-soft/30",
-      )}
-    >
-      <p className={cn("py-5 pr-3 text-right leading-tight tabular-nums sm:pr-5", upcoming ? "text-pencil" : "text-ink")}>
+    <li className="group relative grid grid-cols-[var(--margin-w)_1fr] border-b border-line transition-colors last:border-b-0 hover:bg-paper-2/70">
+      <p className="py-5 pr-3 text-right leading-tight text-ink tabular-nums sm:pr-5">
         <time dateTime={event.startDate}>
           <span className="block font-semibold sm:text-[1.05rem]">{formatDate(event.startDate, { day: "numeric", month: "short" })}</span>
           <span className="block text-sm text-ink-muted">{event.startDate.slice(0, 4)}</span>
@@ -124,9 +134,6 @@ function Entry({ event, upcoming = false }: { event: CampEvent; upcoming?: boole
 
       <div className="flex items-center gap-4 py-5 pr-4 pl-4 sm:pr-5 sm:pl-6">
         <div className="min-w-0 flex-1">
-          {upcoming ? (
-            <p className="eyebrow text-[0.7rem] text-crimson">Coming up</p>
-          ) : null}
           <h3 className="text-lg leading-snug font-semibold sm:text-xl">
             <Link
               href={ROUTES.event(event.slug)}

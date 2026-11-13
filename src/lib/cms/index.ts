@@ -125,8 +125,16 @@ export async function getAppeal(): Promise<AppealView | null> {
   };
 }
 
+/** Running totals for the live ticker; refreshed the moment they're saved in /admin. */
+export async function getLiveUpdates() {
+  "use cache";
+  cacheTag(CMS_TAGS.all, CMS_TAGS.liveUpdates);
+  cacheLife("max");
+  return source.liveUpdates();
+}
+
 export async function getHomePageData(): Promise<HomePageData> {
-  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal] =
+  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates] =
     await Promise.all([
       getSiteSettings(),
       getCauses(),
@@ -136,8 +144,9 @@ export async function getHomePageData(): Promise<HomePageData> {
       getDonationTiers(),
       getFaqs(),
       getAppeal(),
+      getLiveUpdates(),
     ]);
-  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal };
+  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates };
 }
 
 export type * from "./types";

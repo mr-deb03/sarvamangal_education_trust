@@ -24,7 +24,6 @@ export const ROUTES = {
   csr: "/csr",
   contact: "/contact",
   privacy: "/privacy-policy",
-  refunds: "/refund-policy",
   terms: "/terms",
 } as const;
 

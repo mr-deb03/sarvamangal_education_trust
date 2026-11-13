@@ -102,10 +102,12 @@ export interface Config {
   globals: {
     'site-settings': SiteSetting;
     'fundraising-appeal': FundraisingAppeal;
+    'live-updates': LiveUpdate;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'fundraising-appeal': FundraisingAppealSelect<false> | FundraisingAppealSelect<true>;
+    'live-updates': LiveUpdatesSelect<false> | LiveUpdatesSelect<true>;
   };
   locale: null;
   widgets: {
@@ -165,6 +167,15 @@ export interface Event {
    * One or two sentences. Shown on cards and as the Google description.
    */
   summary?: string | null;
+  /**
+   * What people get there, one per line, e.g. “Free BP and sugar check”, “Eye check-up”. Shown on the homepage while the camp is coming up.
+   */
+  highlights?:
+    | {
+        item: string;
+        id?: string | null;
+      }[]
+    | null;
   body?: {
     root: {
       type: string;
@@ -509,6 +520,12 @@ export interface EventsSelect<T extends boolean = true> {
   timeLabel?: T;
   cause?: T;
   summary?: T;
+  highlights?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
   body?: T;
   venue?: T;
   locality?: T;
@@ -827,6 +844,29 @@ export interface FundraisingAppeal {
   createdAt?: string | null;
 }
 /**
+ * Running totals shown in the scrolling “Live” band at the top of the homepage. Update a number and save — the site shows it straight away, with today’s date as “updated”. Latest camp, next camp and the camp count are added automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-updates".
+ */
+export interface LiveUpdate {
+  id: number;
+  counters?:
+    | {
+        value: number;
+        plus?: boolean | null;
+        /**
+         * Shown after the number, e.g. “pouches given to students”.
+         */
+        label: string;
+        icon: 'pouch' | 'notebook' | 'blood' | 'health' | 'people' | 'tree' | 'school' | 'heart';
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -916,6 +956,24 @@ export interface FundraisingAppealSelect<T extends boolean = true> {
   endDate?: T;
   cause?: T;
   image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-updates_select".
+ */
+export interface LiveUpdatesSelect<T extends boolean = true> {
+  counters?:
+    | T
+    | {
+        value?: T;
+        plus?: T;
+        label?: T;
+        icon?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

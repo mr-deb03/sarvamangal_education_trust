@@ -26,7 +26,6 @@ const explore = [
 
 const policies = [
   { label: "Privacy policy", href: ROUTES.privacy },
-  { label: "Refund & cancellation", href: ROUTES.refunds },
   { label: "Terms & conditions", href: ROUTES.terms },
 ];
 

@@ -6,6 +6,8 @@ import { FinalCta } from "@/components/home/FinalCta";
 import { GetInvolved } from "@/components/home/GetInvolved";
 import { GiveSection } from "@/components/home/GiveSection";
 import { Hero } from "@/components/home/Hero";
+import { LiveBar } from "@/components/home/LiveBar";
+import { UpcomingCamps } from "@/components/home/UpcomingCamps";
 import { Voices } from "@/components/home/Voices";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getHomePageData } from "@/lib/cms";
@@ -20,12 +22,15 @@ export const metadata = pageMetadata({
 });
 
 export default async function HomePage() {
-  const { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal } =
+  const { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates } =
     await getHomePageData();
 
   return (
     <>
-      <Hero settings={settings} latest={timeline.past[0]} />
+      <LiveBar live={liveUpdates} timeline={timeline} />
+      <Hero settings={settings} timeline={timeline} tiers={donationTiers} />
+      {/* Shown only while a camp is coming up. */}
+      <UpcomingCamps events={timeline.upcoming} settings={settings} />
       <Causes causes={causes} countByCause={timeline.countByCause} />
       <CampRegister timeline={timeline} stats={settings.impactStats} whatsappNumber={settings.whatsappNumber} />
       {/* Shown only while the trust has a live appeal switched on in /admin. */}
@@ -34,7 +39,7 @@ export default async function HomePage() {
       <Voices testimonials={testimonials} supporters={supporters} />
       <GetInvolved settings={settings} />
       <Faq faqs={faqs} email={settings.contact.email} />
-      <FinalCta donateUrl={settings.donateUrl} />
+      <FinalCta donateUrl={settings.donateUrl} timeline={timeline} />
 
       <JsonLd
         data={[

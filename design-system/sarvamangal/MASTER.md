@@ -20,19 +20,65 @@ blood drives and orthopedic camps). Palette and type below were chosen from the
 trust's own world instead: its crimson logo, the school notebooks it hands out,
 and Indian-made typefaces that also set Devanagari.
 
-## Signature: the school notebook
+## Signature: the photo wall (Nov 2026 redesign)
 
-The trust hands out exercise books printed with
-*"तुम शिक्षा को समय दो, शिक्षा तुम्हारा समय बदल देगी।"* The site borrows that object:
+Chosen by the owner after a study of ten fundraising sites (charity: water, Watsi,
+GiveDirectly, Kiva, Room to Read, CRY, Goonj, Milaap, Akshaya Patra, Rang De). Taken
+from them: honest photography over illustration (charity: water, Room to Read's
+mosaic of faces), giving inside the hero (GiveDirectly). Not taken: carousels,
+handwriting accents (CRY), generic icon grids.
 
-- **The camp register** — events from the CMS written into a ruled page: blue
-  lines, red margin, the date in the margin. Past camps in ink, upcoming ones
-  marked "Coming up" on a dashed row. This is the one bold element per page.
-- **Crimson underline** under two words of the hero headline.
+- **The wall** (`components/home/PhotoWall.tsx`) — the cover photo of every past
+  camp in the CMS, as tiles in a full-bleed grid with thin ink seams: 4×3 on phones,
+  6×4 on tablets, 9×4 on desktop, plus one 2×2 tile (the hero image from Site
+  settings). It grows as editors add camps; it only repeats photos if there are
+  fewer camps than tiles. Hovering a tile shows the camp and month; clicking opens it.
+  Tiles are decorative to screen readers and out of the tab order — the register
+  lists the same camps as real links.
+- **The hero card** sits on the wall (left on desktop, overlapping the wall's foot on
+  phones): eyebrow, h1 with the crimson underline, intro, amount chips (donation
+  tiers; a general gift, so no per-cause outcome line — owner's call), Donate, trust row. A caption bar
+  under the wall says what the photos are: "Photos from our own camps — N on the
+  register since YEAR."
+- **Causes** reuse the wall's grid: four edge-to-edge photos with the same seams.
+- **The closing strip** (FinalCta) brings the wall back as one row of the latest
+  camps, ending in an empty dashed tile: the next camp ("Date being fixed", or the
+  announced camp).
+
+### The live band
+
+A 48px ink band under the header, above the wall: a crimson "● Live · updated 13 Nov"
+tag, then a slow ticker (≈75px/s) of running totals in marigold Playfair figures with
+a small icon ("1,500+ pouches given to students", "300+ units of blood collected"),
+then the latest camp, the next camp and the camp count, which keep themselves current.
+TV-news vernacular, familiar to every visitor. Pauses on hover; no pause button
+(owner's call); under reduced motion it stands still and scrolls sideways. Screen
+readers get one plain list, not the moving copies.
+
+### Coming up: the free-entry ticket
+
+Upcoming camps (`UpcomingCamps.tsx`) sit right after the hero, on paper-2, only while
+something is scheduled. Each is a ticket because the camps are free to attend — the
+donor is who pays for the ticket:
+
+- **Stub** (crimson, behind a dashed perforation with two paper-coloured notches):
+  weekday, the day in large Playfair figures (smaller for a range, "19–20"), month
+  and year, a marigold countdown chip ("In 9 days", "Tomorrow", "Today" with a pulse),
+  "Entry free", Add to calendar. Phones: the stub is the ticket's header; desktop: it's
+  the right-hand column.
+- **Body**: cause, title, time, place + Directions, summary, the "At the camp" list,
+  then one action per audience — Help fund this camp (donor), Volunteer at this camp
+  (WhatsApp to the trust), and "Know someone who should come? Send them the details
+  on WhatsApp" (neighbours, family groups).
+- Later camps get a smaller ticket (date stub on the left; calendar, directions, share).
+- The hero caption bar says "Next camp: Sun, 22 Nov · Bhandup West ↓" with a pulse.
+- Shared and saved links point to `/#coming-up` until event pages ship (Phase 2).
+
+Everything else stays quiet. The camp register is now a plain dated list (no ruled
+lines). The notebook survives in two places only: the Hindi notebook line in the
+Give section, and the ruled 404 page.
 
 No handwriting or script fonts — the owner rejected them (Nov 2026).
-
-Everything else stays quiet: photos, generous space, clean type.
 
 ## Colour (tokens in `src/app/globals.css`)
 
@@ -49,8 +95,10 @@ Everything else stays quiet: photos, generous space, clean type.
 | paper / paper-2 | `#FFFFFF` / `#F3F6FB` | surfaces (cool notebook white, not cream) |
 | ruling | `#BBD3EE` | notebook lines, never text |
 
-Section rhythm on the homepage: white → paper-2 → white (register) → **ink** (give)
-→ white → paper-2 → white → **crimson** (final ask) → ink footer.
+Section rhythm on the homepage: **ink** (live band) → **ink** (photo wall + card) → paper-2 (coming up, only
+when a camp is scheduled) → **ink** (cause photos)
+→ white (register) → paper-2 (appeal) → **ink** (give) → white → paper-2 → white
+→ **crimson** (photo strip + final ask) → ink footer.
 
 ## Type
 
@@ -66,13 +114,15 @@ Scale: hero 2.4rem → 3.7rem; section H2 2.15rem → 3rem; body 17–20px, line
 
 - Container `max-w-7xl`, gutters 16/24/32px. Sections `py-20 lg:py-28`.
 - 12-column grid on desktop; text never wider than ~65ch.
-- Phones: hero photo first; cause cards become a swipe row; sticky Donate bar after
-  the hero, hidden near the closing CTA.
+- Phones: the wall first (4×3), the hero card overlapping its foot; cause photos
+  become a swipe row; sticky Donate bar after the hero, hidden near the closing CTA.
 - Radius: cards 16–28px, buttons full pill.
 
 ## Motion
 
-- Hero lines rise in (700ms, staggered 140ms); the accent underline fades up into place after (700ms).
+- Wall tiles wave in from the top left on load (700ms each, 28ms apart); the hero
+  card lifts 28px into place (transform only — the h1 is never hidden); the accent
+  underline fades up into place after.
 - Sections fade up once on scroll (`data-reveal`, 650ms).
 - Hover: 1px lift, photo zoom 1.03–1.04, arrow nudge.
 - All of it off under `prefers-reduced-motion`; content is visible without JS.

@@ -46,6 +46,8 @@ export type CampEvent = {
   city?: string;
   state: string;
   summary?: string;
+  /** What people get at the camp ("Free BP and sugar check"). Shown while it's coming up. */
+  highlights?: string[];
   coverImage?: ImageRef;
   beneficiaries?: {
     count: number;
@@ -173,6 +175,24 @@ export type AppealView = Appeal & {
   daysLeft?: number;
 };
 
+/** Icons for live-ticker totals. Keep in sync with LIVE_ICONS in src/payload/globals/LiveUpdates.ts. */
+export type LiveIcon = "pouch" | "notebook" | "blood" | "health" | "people" | "tree" | "school" | "heart";
+
+/** A running total in the live ticker, e.g. 1,500+ pouches given to students. */
+export type LiveCounter = {
+  value: number;
+  /** Render as "1,500+". */
+  plus: boolean;
+  label: string;
+  icon: LiveIcon;
+};
+
+export type LiveUpdates = {
+  counters: LiveCounter[];
+  /** `YYYY-MM-DD` (India) of the last save in /admin. */
+  updatedAt?: string;
+};
+
 /** What every content backend (Payload, seed) must provide. */
 export type ContentSource = {
   siteSettings(): Promise<SiteSettings>;
@@ -185,6 +205,7 @@ export type ContentSource = {
   faqs(): Promise<Faq[]>;
   /** Null when switched off or incomplete. */
   appeal(): Promise<Appeal | null>;
+  liveUpdates(): Promise<LiveUpdates>;
 };
 
 export type HomePageData = {
@@ -197,4 +218,5 @@ export type HomePageData = {
   faqs: Faq[];
   /** Null when there is no live appeal. */
   appeal: AppealView | null;
+  liveUpdates: LiveUpdates;
 };

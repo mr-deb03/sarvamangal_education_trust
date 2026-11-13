@@ -23,7 +23,7 @@ touching any UI.
   starting Phase 2.
 - Phase 2: `/events` + `/events/[slug]`, `/causes` + `/causes/[slug]`, `/about`,
   `/volunteer` (form), `/csr`, `/contact`, `/blog` + posts, legal pages
-  (`/privacy-policy`, `/refund-policy`, `/terms`), legacy-URL redirects. Links to these routes already exist in the header/footer and 404
+  (`/privacy-policy`, `/terms`; no refund policy page — owner's call), legacy-URL redirects. Links to these routes already exist in the header/footer and 404
   until built (`app/not-found.tsx` handles that gracefully).
 
 ## Commands
@@ -96,7 +96,12 @@ src/lib/cms/
 - **Events come from the CMS.** Editors add a camp at /admin → save → the
   collection's afterChange hook (`src/payload/hooks/revalidate.ts`) calls
   `revalidateTag(<tag>, { expire: 0 })` in-process → the next visitor sees it.
-  Future-dated events show as "Coming up" on the register; the split
+  Future-dated events get the homepage's **Coming up** section
+  (`components/home/UpcomingCamps.tsx`, right after the hero, hidden when nothing is
+  scheduled): a free-entry ticket with a live countdown (`Countdown.tsx`, computed in
+  the browser), Add to calendar / Directions / WhatsApp share (`lib/event-links.ts`),
+  Volunteer and Help fund buttons, and the event's **"At the camp"** list
+  (`highlights`). The hero caption bar links to the next camp. The upcoming/past split
   re-evaluates daily on its own.
 - Payload is pinned to **3.91.0** (every `@payloadcms/*` package must match):
   3.92+ needs Node ≥ 24.22.1; this machine has 24.11. Upgrade Node first, then
@@ -111,7 +116,13 @@ src/lib/cms/
   counting"). `getAppeal()` hides it unless switched on and complete, and after its
   end date; it renders between the register and the Give section
   (`components/home/Appeal.tsx`). There is deliberately **no seed appeal** — figures
-  only ever come from the trust. Live now: free pouch distribution, 1,500+, no limit.
+  only ever come from the trust. Switched off and cleared (Nov 2026): the pouch total
+  lives in the live ticker; turn the appeal on again when there's a goal to show.
+- **Live ticker** (global `live-updates`, admin → Homepage → Live updates ticker): the
+  scrolling "● Live" band under the header. Totals come from the trust ("1,500+ pouches
+  given to students"; "updated" = the last save); `components/home/LiveBar.tsx` adds the
+  latest camp, next camp and camp count from Events. Pauses on hover (no pause
+  button — owner's call); still under reduced motion. No seed totals — figures only come from the trust.
 - **Adding a field or content type**: collection in `src/payload/` → `npm run
   generate:types` → site type in `types.ts` → mapper in `payload/source.ts` +
   seed in `seed/` → getter in `cms/index.ts` (`"use cache"` + tag) → map the
@@ -161,6 +172,8 @@ src/lib/cms/
 - Donation tier amounts and outcomes (`seed/content.ts` → `seedDonationTiers`) — drafts.
 - PIN code 400078 for the Bhandup West office.
 - Supporter list (Accenture, Microsoft are carried over from the old site).
+- Live ticker: "300+ units of blood collected" came from the owner's message
+  ("something like this") — confirm the real figure. 1,500+ pouches is confirmed.
 - Testimonial wording was lightly edited for grammar — get each supporter's OK.
 - 80G no. ABGTS0900EF20241 (13 Sep 2024), reg. no. E-0038125 (GBR) and PAN
   ABGTS0900E were taken from the donation-receipt template.

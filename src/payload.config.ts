@@ -13,6 +13,7 @@ import { DonationTiers, Faqs, Supporters, Testimonials } from "./payload/collect
 import { Media } from "./payload/collections/Media";
 import { Users } from "./payload/collections/Users";
 import { FundraisingAppeal } from "./payload/globals/FundraisingAppeal";
+import { LiveUpdates } from "./payload/globals/LiveUpdates";
 import { SiteSettings } from "./payload/globals/SiteSettings";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -52,7 +53,7 @@ export default buildConfig({
     dateFormat: "d MMM yyyy",
   },
   collections: [Events, Causes, Media, DonationTiers, Testimonials, Supporters, Faqs, Users],
-  globals: [SiteSettings, FundraisingAppeal],
+  globals: [SiteSettings, FundraisingAppeal, LiveUpdates],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? "",
   typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },

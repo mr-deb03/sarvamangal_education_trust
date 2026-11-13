@@ -8,12 +8,13 @@ import type {
   Cause as PCause,
   Event as PEvent,
   FundraisingAppeal as PAppeal,
+  LiveUpdate as PLiveUpdates,
   Media as PMedia,
   SiteSetting as PSiteSettings,
 } from "@/payload-types";
 
 import { seedSettings } from "../seed/content";
-import type { Appeal, CampEvent, Cause, ContentSource, ImageRef, SiteSettings } from "../types";
+import type { Appeal, CampEvent, Cause, ContentSource, ImageRef, LiveUpdates, SiteSettings } from "../types";
 
 /**
  * Payload → site types, through the Local API (direct database access, no
@@ -134,6 +135,7 @@ function toEvent(e: PEvent): CampEvent | null {
     city: e.city ?? undefined,
     state: e.state,
     summary: e.summary ?? undefined,
+    highlights: e.highlights?.map((h) => h.item.trim()).filter(Boolean),
     coverImage: toImage(e.coverImage, `${e.title} — Sarvamangal Education Trust`),
     beneficiaries: b?.count ? { count: b.count, label: b.label || "people", approximate: Boolean(b.approximate) } : undefined,
     partners: e.partners?.map((p) => p.name).filter(Boolean),
@@ -216,6 +218,14 @@ async function appeal(): Promise<Appeal | null> {
   };
 }
 
+async function liveUpdates(): Promise<LiveUpdates> {
+  const raw = (await (await payload()).findGlobal({ slug: "live-updates", depth: 0 })) as PLiveUpdates;
+  const counters = (raw.counters ?? [])
+    .filter((c) => c.label?.trim() && typeof c.value === "number")
+    .map((c) => ({ value: c.value, plus: Boolean(c.plus), label: c.label.trim(), icon: c.icon }));
+  return { counters, updatedAt: counters.length > 0 ? toDate(raw.updatedAt) : undefined };
+}
+
 export const payloadSource: ContentSource = {
   siteSettings,
   causes,
@@ -225,4 +235,5 @@ export const payloadSource: ContentSource = {
   donationTiers,
   faqs,
   appeal,
+  liveUpdates,
 };
