@@ -150,6 +150,7 @@ async function seed(payload: Payload) {
           : {},
         partners: (e.partners ?? []).map((name) => ({ name })),
         coverImage: cover,
+        _status: "published",
       },
       e.title,
     );

@@ -138,7 +138,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * Every camp and drive. Future dates show as “Coming up” on the homepage; past ones go into the register.
+ * Every camp and drive. Future dates show in “Coming up” on the homepage; past ones go into the register. “Save draft” keeps a camp off the website until you press “Publish”.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
@@ -236,6 +236,7 @@ export interface Event {
   seoDescription?: string | null;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -338,6 +339,9 @@ export interface Testimonial {
   role?: string | null;
   supporterSince?: number | null;
   cause?: (number | null) | Cause;
+  /**
+   * A clear photo of the person's face — square works best. Without one, their initials show.
+   */
   photo?: (number | null) | Media;
   /**
    * Lower numbers show first.
@@ -384,12 +388,15 @@ export interface Faq {
   createdAt: string;
 }
 /**
+ * Who can sign in. Editors run camps, photos and the homepage; admins also manage settings and the team.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   name?: string | null;
+  role: 'admin' | 'editor';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -550,6 +557,7 @@ export interface EventsSelect<T extends boolean = true> {
   seoDescription?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -654,6 +662,7 @@ export interface FaqsSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -844,7 +853,7 @@ export interface FundraisingAppeal {
   createdAt?: string | null;
 }
 /**
- * Running totals shown in the scrolling “Live” band at the top of the homepage. Update a number and save — the site shows it straight away, with today’s date as “updated”. Latest camp, next camp and the camp count are added automatically.
+ * Running totals shown in the scrolling “Live” band at the top of the homepage. Update a number and save — the site shows it straight away, with today’s date as “updated”. The latest camp and the camp count are added automatically.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "live-updates".

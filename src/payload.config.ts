@@ -44,6 +44,9 @@ export default buildConfig({
       // Labelled "Log out" buttons: always visible in the header, and in the
       // sidebar instead of Payload's unlabelled icon.
       actions: ["/payload/components/LogoutButton#HeaderLogoutButton"],
+      // Admin home: everyday tasks and what's on the site now, above Payload's section cards.
+      beforeDashboard: ["/payload/components/Dashboard#TaskDashboard"],
+      beforeLogin: ["/payload/components/LoginIntro#LoginIntro"],
       logout: { Button: "/payload/components/LogoutButton#LogoutButton" },
       graphics: {
         Logo: "/payload/components/AdminLogo#AdminLogo",

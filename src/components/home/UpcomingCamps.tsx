@@ -25,7 +25,7 @@ export function UpcomingCamps({ events, settings }: { events: CampEvent[]; setti
   if (!next) return null;
 
   return (
-    <section id="coming-up" aria-labelledby="coming-up-title" className="scroll-mt-20 bg-paper-2 py-16 lg:py-24">
+    <section id="coming-up" aria-labelledby="coming-up-title" className="scroll-mt-20 bg-paper-2 py-12 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionIntro
           id="coming-up-title"
@@ -57,7 +57,7 @@ export function UpcomingCamps({ events, settings }: { events: CampEvent[]; setti
 }
 
 /** The soonest camp, in full. */
-function Ticket({ event, settings }: { event: CampEvent; settings: SiteSettings }) {
+export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSettings }) {
   const directions = directionsHref(event);
   const volunteerHref = whatsappHref(
     settings.whatsappNumber,

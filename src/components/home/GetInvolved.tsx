@@ -16,17 +16,17 @@ export function GetInvolved({ settings }: { settings: SiteSettings }) {
   );
 
   return (
-    <section aria-labelledby="involved-title" className="bg-paper-2 py-20 lg:py-28">
+    <section aria-labelledby="involved-title" className="defer-render bg-paper-2 py-14 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionIntro id="involved-title" eyebrow="Get involved" title="Give time, not only money">
           Every camp runs on people. Here are three ways to be one of them.
         </SectionIntro>
 
-        <div className="mt-12 grid gap-5 lg:mt-14 lg:grid-cols-12">
+        <div className="mt-8 grid gap-4 sm:mt-12 sm:gap-5 lg:mt-14 lg:grid-cols-12">
           <Reveal className="lg:col-span-7 lg:row-span-2">
           <Link
             href={ROUTES.volunteer}
-            className="group relative isolate flex h-full min-h-[24rem] flex-col justify-end overflow-hidden rounded-[1.75rem] p-6 text-white sm:p-8"
+            className="group relative isolate flex h-full min-h-[20rem] flex-col justify-end overflow-hidden rounded-[1.75rem] p-5 text-white sm:min-h-[24rem] sm:p-8"
           >
             <Image
               src="/images/blood-donation-camp.jpg"
@@ -49,9 +49,9 @@ export function GetInvolved({ settings }: { settings: SiteSettings }) {
           </Link>
           </Reveal>
 
-          <Reveal className="flex flex-col rounded-[1.75rem] bg-white p-6 ring-1 ring-line sm:p-8 lg:col-span-5">
-            <Building2 aria-hidden className="size-8 text-crimson" strokeWidth={1.6} />
-            <h3 className="mt-4 text-2xl font-semibold">Partner with us for CSR</h3>
+          <Reveal className="flex flex-col rounded-[1.75rem] bg-white p-5 ring-1 ring-line sm:p-8 lg:col-span-5">
+            <Building2 aria-hidden className="size-7 text-crimson sm:size-8" strokeWidth={1.6} />
+            <h3 className="mt-3 text-[1.4rem] font-semibold sm:mt-4 sm:text-2xl">Partner with us for CSR</h3>
             <p className="mt-2 flex-1 text-ink-muted">
               Bring a health camp or a notebook drive to the community your company serves. We plan it with your
               team, run it on the ground, and report back with photos and numbers.
@@ -62,9 +62,9 @@ export function GetInvolved({ settings }: { settings: SiteSettings }) {
             </ButtonLink>
           </Reveal>
 
-          <Reveal className="flex flex-col rounded-[1.75rem] bg-white p-6 ring-1 ring-line sm:p-8 lg:col-span-5">
-            <MessageCircle aria-hidden className="size-8 text-crimson" strokeWidth={1.6} />
-            <h3 className="mt-4 text-2xl font-semibold">Hear about the next camp</h3>
+          <Reveal className="flex flex-col rounded-[1.75rem] bg-white p-5 ring-1 ring-line sm:p-8 lg:col-span-5">
+            <MessageCircle aria-hidden className="size-7 text-crimson sm:size-8" strokeWidth={1.6} />
+            <h3 className="mt-3 text-[1.4rem] font-semibold sm:mt-4 sm:text-2xl">Hear about the next camp</h3>
             <p className="mt-2 flex-1 text-ink-muted">
               Send us a WhatsApp message and we’ll tell you when the next camp near you is announced — to come,
               to help, or to bring someone who needs it.

@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { publishedOrSignedIn, signedIn } from "../access";
+
 import { slugField } from "../fields";
 import { revalidateCollection } from "../hooks/revalidate";
 
@@ -10,10 +12,13 @@ export const Events: CollectionConfig = {
     group: "Content",
     useAsTitle: "title",
     defaultColumns: ["title", "startDate", "cause", "city"],
-    description: "Every camp and drive. Future dates show as “Coming up” on the homepage; past ones go into the register.",
+    description:
+      "Every camp and drive. Future dates show in “Coming up” on the homepage; past ones go into the register. “Save draft” keeps a camp off the website until you press “Publish”.",
   },
   defaultSort: "-startDate",
-  access: { read: () => true },
+  access: { read: publishedOrSignedIn, readVersions: signedIn, create: signedIn, update: signedIn, delete: signedIn },
+  // Drafts: prepare a camp before it goes live. History: every save is kept and can be restored.
+  versions: { drafts: true, maxPerDoc: 50 },
   hooks: revalidateCollection(),
   fields: [
     {

@@ -1,13 +1,20 @@
 import type { GlobalConfig } from "payload";
 
+import { adminsOnly, anyone, hiddenFromEditors, signedIn } from "../access";
+
 import { revalidateGlobal } from "../hooks/revalidate";
 
 /** Any field left empty falls back to the website's built-in content. */
 export const SiteSettings: GlobalConfig = {
   slug: "site-settings",
   label: "Site settings",
-  admin: { group: "Homepage", description: "Homepage hero, numbers, contact details and links. Empty fields use the built-in text." },
-  access: { read: () => true },
+  admin: {
+    group: "Homepage",
+    description: "Homepage hero, numbers, contact details and links. Empty fields use the built-in text.",
+    hidden: hiddenFromEditors,
+  },
+  access: { read: anyone, readVersions: signedIn, update: adminsOnly },
+  versions: { max: 25 },
   hooks: { afterChange: [revalidateGlobal()] },
   fields: [
     {

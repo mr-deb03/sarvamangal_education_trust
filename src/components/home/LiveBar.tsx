@@ -1,17 +1,16 @@
 import type { EventTimeline, LiveUpdates } from "@/lib/cms/types";
-import { eventDayLabel } from "@/lib/event-links";
 import { formatDate } from "@/lib/format";
 
 import { LiveTicker, type TickerItem } from "./LiveTicker";
 
 /**
  * Builds the live ticker: the trust's running totals from /admin first, then
- * three items that keep themselves current from the register — the latest
- * camp, the next camp, and how many camps are on the register.
+ * two items that keep themselves current from the register — the latest camp
+ * and how many camps are on the register. (No next-camp item — owner's call;
+ * upcoming camps have their own section.)
  */
 export function LiveBar({ live, timeline }: { live: LiveUpdates; timeline: EventTimeline }) {
   const latest = timeline.past[0];
-  const next = timeline.upcoming[0];
   const firstYear = timeline.past.at(-1)?.startDate.slice(0, 4);
 
   const items: TickerItem[] = [
@@ -30,13 +29,6 @@ export function LiveBar({ live, timeline }: { live: LiveUpdates; timeline: Event
           },
         ]
       : []),
-    next
-      ? {
-          key: "next",
-          icon: "calendar" as const,
-          text: `Next camp: ${next.title}, ${eventDayLabel(next)}${next.locality || next.city ? ` · ${next.locality ?? next.city}` : ""}`,
-        }
-      : { key: "next", icon: "calendar" as const, text: "Next camp: date being fixed" },
     ...(timeline.total > 0
       ? [
           {

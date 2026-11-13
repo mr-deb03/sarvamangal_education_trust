@@ -25,6 +25,8 @@ import { LogoutButton as LogoutButton_7c0525bf499ee6ddfb90ddfff60da17e } from '.
 import { AdminIcon as AdminIcon_564bf34304abb38917a0b375396d43e6 } from '../../../payload/components/AdminLogo'
 import { AdminLogo as AdminLogo_564bf34304abb38917a0b375396d43e6 } from '../../../payload/components/AdminLogo'
 import { HeaderLogoutButton as HeaderLogoutButton_7c0525bf499ee6ddfb90ddfff60da17e } from '../../../payload/components/LogoutButton'
+import { TaskDashboard as TaskDashboard_85b72bc5c0d30238d51de444df4399a6 } from '../../../payload/components/Dashboard'
+import { LoginIntro as LoginIntro_e78f7e4878ddd85367b447d01b9b5799 } from '../../../payload/components/LoginIntro'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -56,5 +58,7 @@ export const importMap = {
   "/payload/components/AdminLogo#AdminIcon": AdminIcon_564bf34304abb38917a0b375396d43e6,
   "/payload/components/AdminLogo#AdminLogo": AdminLogo_564bf34304abb38917a0b375396d43e6,
   "/payload/components/LogoutButton#HeaderLogoutButton": HeaderLogoutButton_7c0525bf499ee6ddfb90ddfff60da17e,
+  "/payload/components/Dashboard#TaskDashboard": TaskDashboard_85b72bc5c0d30238d51de444df4399a6,
+  "/payload/components/LoginIntro#LoginIntro": LoginIntro_e78f7e4878ddd85367b447d01b9b5799,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

@@ -1,14 +1,17 @@
 import type { CollectionConfig } from "payload";
 
+import { adminsOnly, anyone, hiddenFromEditors, signedIn } from "../access";
+
 import { orderField, slugField } from "../fields";
 import { revalidateCollection } from "../hooks/revalidate";
 
 export const Causes: CollectionConfig = {
   slug: "causes",
   labels: { singular: "Cause", plural: "Causes" },
-  admin: { group: "Content", useAsTitle: "title", defaultColumns: ["title", "tagline", "order"] },
+  admin: { group: "Content", useAsTitle: "title", defaultColumns: ["title", "tagline", "order"], hidden: hiddenFromEditors },
   defaultSort: "order",
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, create: adminsOnly, update: adminsOnly, delete: adminsOnly },
+  versions: { maxPerDoc: 25 },
   hooks: revalidateCollection(),
   fields: [
     { name: "title", type: "text", required: true },

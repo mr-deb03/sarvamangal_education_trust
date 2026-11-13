@@ -48,6 +48,12 @@ export type CampEvent = {
   summary?: string;
   /** What people get at the camp ("Free BP and sugar check"). Shown while it's coming up. */
   highlights?: string[];
+  /** The full write-up, rendered to HTML from the CMS's rich text. */
+  bodyHtml?: string;
+  gallery?: ImageRef[];
+  /** Optional overrides for Google; the page falls back to title / summary. */
+  seoTitle?: string;
+  seoDescription?: string;
   coverImage?: ImageRef;
   beneficiaries?: {
     count: number;
@@ -76,6 +82,8 @@ export type Testimonial = {
   role: string;
   supporterSince?: number;
   causeSlug?: string;
+  /** The person's photo. Without one, the card shows their initials. */
+  photo?: ImageRef;
 };
 
 export type Supporter = {

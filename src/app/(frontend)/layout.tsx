@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Mukta, Playfair_Display } from "next/font/google";
+import { Fraunces, Inter, Mukta } from "next/font/google";
 
 import { Analytics } from "@/components/seo/Analytics";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { MobileDonateBar } from "@/components/layout/MobileDonateBar";
+import { WhatsAppChat } from "@/components/layout/WhatsAppChat";
 import { getCauses, getSiteSettings } from "@/lib/cms";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -13,22 +14,30 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 /**
- * Display: Playfair Display — headings and titles (owner's choice, Nov 2026).
- * It has no Devanagari, so `--font-display` falls back to Mukta for Hindi text
- * and the ₹ sign (see globals.css).
+ * Fonts (owner's choice, Nov 2026): Fraunces for headings and titles, Inter for
+ * everything else. Neither has Devanagari, so both stacks end in Mukta, which
+ * only draws Hindi text and the ₹ sign (see globals.css).
  */
-const playfair = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  axes: ["opsz"],
+  variable: "--font-fraunces",
   display: "swap",
 });
 
-/** Body: Mukta (Ek Type). Devanagari subset also carries the ₹ sign. */
-const mukta = Mukta({
-  subsets: ["latin", "devanagari"],
-  weight: ["400", "600"],
-  variable: "--font-mukta",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
+});
+
+/** Hindi only (and ₹) — loaded when such text is on screen, so not preloaded. */
+const hindi = Mukta({
+  subsets: ["devanagari"],
+  weight: ["400"],
+  variable: "--font-hindi",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -60,7 +69,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [settings, causes] = await Promise.all([getSiteSettings(), getCauses()]);
 
   return (
-    <html lang="en-IN" className={`${playfair.variable} ${mukta.variable}`}>
+    <html lang="en-IN" className={`${fraunces.variable} ${inter.variable} ${hindi.variable}`}>
       <body className="flex min-h-dvh flex-col antialiased">
         <a
           href="#main"
@@ -74,6 +83,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         </main>
         <Footer settings={settings} causes={causes} />
         <MobileDonateBar donateUrl={settings.donateUrl} />
+        <WhatsAppChat number={settings.whatsappNumber} />
         <JsonLd data={[organizationJsonLd(settings), websiteJsonLd()]} />
         <Analytics />
       </body>

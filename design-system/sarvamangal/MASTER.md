@@ -28,11 +28,16 @@ from them: honest photography over illustration (charity: water, Room to Read's
 mosaic of faces), giving inside the hero (GiveDirectly). Not taken: carousels,
 handwriting accents (CRY), generic icon grids.
 
-- **The wall** (`components/home/PhotoWall.tsx`) — the cover photo of every past
+- **The wall** (`components/home/HeroWall.tsx` in the hero; `PhotoWall.tsx` tiles in the closing strip) — the cover photo of every past
   camp in the CMS, as tiles in a full-bleed grid with thin ink seams: 4×3 on phones,
   6×4 on tablets, 9×4 on desktop, plus one 2×2 tile (the hero image from Site
   settings). It grows as editors add camps; it only repeats photos if there are
   fewer camps than tiles. Hovering a tile shows the camp and month; clicking opens it.
+  **It glides:** the hero wall is rows of camp photos (4 rows; 3 on phones) moving
+  sideways, alternate rows left and right, 70–92s a loop (~30px/s on desktop), the
+  trust's hero photo double-width in row 2. The server sends one copy of each row (a
+  complete still wall); the browser adds the second copy for a seamless loop, then the
+  row moves. A row pauses under the mouse; nothing moves under reduced motion.
   Tiles are decorative to screen readers and out of the tab order — the register
   lists the same camps as real links.
 - **The hero card** sits on the wall (left on desktop, overlapping the wall's foot on
@@ -48,12 +53,31 @@ handwriting accents (CRY), generic icon grids.
 ### The live band
 
 A 48px ink band under the header, above the wall: a crimson "● Live · updated 13 Nov"
-tag, then a slow ticker (≈75px/s) of running totals in marigold Playfair figures with
+tag, then a slow ticker (≈75px/s) of running totals in marigold Fraunces figures with
 a small icon ("1,500+ pouches given to students", "300+ units of blood collected"),
-then the latest camp, the next camp and the camp count, which keep themselves current.
+then the latest camp and the camp count, which keep themselves current (no next-camp item).
 TV-news vernacular, familiar to every visitor. Pauses on hover; no pause button
 (owner's call); under reduced motion it stands still and scrolls sideways. Screen
 readers get one plain list, not the moving copies.
+
+### Testimonial wall
+
+Supporter quotes in columns that drift slowly — up, down, up — each at its own speed
+(44s / 52s / 48s a loop), fading out at the top and bottom edges. A column pauses
+while hovered or touched. 3 columns on desktop, 2 on tablets; phones get a still swipe row instead. Each card:
+the person's photo (Testimonials → Photo in /admin) or their initials in crimson,
+ink or marigold, then the quote and "Supporter since". Screen readers get each quote
+once; under reduced motion the wall is replaced by a still grid.
+
+### Floating WhatsApp
+
+A 56px WhatsApp-green circle (`.whatsapp-green`, plain CSS — the only place that green
+is used) with WhatsApp's own mark, bottom right; on phones it rests in the corner and
+lifts above the sticky Donate bar only while that bar shows. It pings softly
+three times on load (motion-safe). After 6s a small white bubble — "Namaste! Questions
+about donating, volunteering or the next camp?" — offers "Start a chat"; closing it
+keeps it closed for the visit. It also steps aside by itself when the visitor
+scrolls on or after 8s, so it never sits over the page on a phone.
 
 ### Coming up: the free-entry ticket
 
@@ -62,7 +86,7 @@ something is scheduled. Each is a ticket because the camps are free to attend �
 donor is who pays for the ticket:
 
 - **Stub** (crimson, behind a dashed perforation with two paper-coloured notches):
-  weekday, the day in large Playfair figures (smaller for a range, "19–20"), month
+  weekday, the day in large Fraunces figures (smaller for a range, "19–20"), month
   and year, a marigold countdown chip ("In 9 days", "Tomorrow", "Today" with a pulse),
   "Entry free", Add to calendar. Phones: the stub is the ticket's header; desktop: it's
   the right-hand column.
@@ -104,9 +128,10 @@ when a camp is scheduled) → **ink** (cause photos)
 
 | Role | Face | Notes |
 |---|---|---|
-| Display | **Playfair Display** (owner's choice, Nov 2026) | Headings and titles, 600. No Devanagari: `--font-display` falls back to Mukta for Hindi and ₹ |
-| Body | **Mukta** (Ek Type) 400/600 | Devanagari subset also supplies ₹ |
-| Labels | Mukta 600, uppercase, 0.14em tracking | `eyebrow` utility, above section titles |
+| Display | **Fraunces** (owner's choice, Nov 2026; replaced Playfair Display) | Headings and titles, 600, optical sizing on |
+| Body | **Inter** (owner's choice, Nov 2026; replaced Mukta) | Everything else |
+| Labels | Inter 600, uppercase, 0.14em tracking | `eyebrow` utility, above section titles |
+| Hindi | Mukta 400/600, Devanagari only, not preloaded | Last in both stacks: draws Hindi text and ₹, nothing else |
 
 Scale: hero 2.4rem → 3.7rem; section H2 2.15rem → 3rem; body 17–20px, line-height 1.6.
 
@@ -114,8 +139,21 @@ Scale: hero 2.4rem → 3.7rem; section H2 2.15rem → 3rem; body 17–20px, line
 
 - Container `max-w-7xl`, gutters 16/24/32px. Sections `py-20 lg:py-28`.
 - 12-column grid on desktop; text never wider than ~65ch.
-- Phones: the wall first (4×3), the hero card overlapping its foot; cause photos
-  become a swipe row; sticky Donate bar after the hero, hidden near the closing CTA.
+- **Phones first** (most visitors; audited at 360px, Nov 2026 — 19 screens → 15):
+  - The wall (4×3), the hero card overlapping its foot.
+  - Causes: 2×2 photo tiles, title + camp count only.
+  - Register: stats as compact rows; four latest camps.
+  - Give: heading → 2×2 amount grid (the chosen amount's outcome below) → Donate →
+    the notebook line.
+  - Testimonials: a still swipe row on phones (the moving wall is tablet and up).
+  - Footer: Explore and Causes side by side; every link ≥ 44px tall.
+  - Sections `py-14` on phones, `py-20` from sm, `py-28` from lg.
+  - Body text 16px on phones (Inter runs large), 17px from sm; section intros 2rem / 16px.
+  - Hero card: no eyebrow label on phones (the header logo already names the trust).
+  - Hero card order on phones: headline → amounts + Donate → trust row → intro, so Donate
+    is on the first screen (checked at 360, 375 and 412px wide).
+  - Sticky Donate bar: hidden while any `data-donate-zone` (hero, Give, closing ask)
+    is on screen, so two Donate buttons never stack.
 - Radius: cards 16–28px, buttons full pill.
 
 ## Motion

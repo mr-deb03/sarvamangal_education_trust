@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { adminsOnly, anyone, hiddenFromEditors, signedIn } from "../access";
+
 import { orderField } from "../fields";
 import { revalidateCollection } from "../hooks/revalidate";
 
@@ -8,9 +10,10 @@ import { revalidateCollection } from "../hooks/revalidate";
 export const DonationTiers: CollectionConfig = {
   slug: "donation-tiers",
   labels: { singular: "Donation amount", plural: "Donation amounts" },
-  admin: { group: "Homepage", useAsTitle: "title", defaultColumns: ["amount", "title", "order"] },
+  admin: { group: "Homepage", useAsTitle: "title", defaultColumns: ["amount", "title", "order"], hidden: hiddenFromEditors },
   defaultSort: "order",
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, create: adminsOnly, update: adminsOnly, delete: adminsOnly },
+  versions: { maxPerDoc: 25 },
   hooks: revalidateCollection(),
   fields: [
     {
@@ -39,7 +42,8 @@ export const Testimonials: CollectionConfig = {
   labels: { singular: "Testimonial", plural: "Testimonials" },
   admin: { group: "Homepage", useAsTitle: "name", defaultColumns: ["name", "role", "supporterSince"] },
   defaultSort: "order",
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, create: signedIn, update: signedIn, delete: signedIn },
+  versions: { maxPerDoc: 25 },
   hooks: revalidateCollection(),
   fields: [
     { name: "quote", type: "textarea", required: true, maxLength: 600 },
@@ -52,7 +56,14 @@ export const Testimonials: CollectionConfig = {
     },
     { name: "supporterSince", label: "Supporter since (year)", type: "number", min: 2015, max: 2100 },
     { name: "cause", type: "relationship", relationTo: "causes" },
-    { name: "photo", type: "upload", relationTo: "media" },
+    {
+      name: "photo",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description: "A clear photo of the person's face — square works best. Without one, their initials show.",
+      },
+    },
     orderField,
   ],
 };
@@ -62,7 +73,8 @@ export const Supporters: CollectionConfig = {
   labels: { singular: "Supporter", plural: "Supporters" },
   admin: { group: "Homepage", useAsTitle: "name", defaultColumns: ["name", "url", "order"] },
   defaultSort: "order",
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, create: signedIn, update: signedIn, delete: signedIn },
+  versions: { maxPerDoc: 25 },
   hooks: revalidateCollection(),
   fields: [
     { name: "name", type: "text", required: true },
@@ -82,7 +94,8 @@ export const Faqs: CollectionConfig = {
   labels: { singular: "FAQ", plural: "FAQs" },
   admin: { group: "Homepage", useAsTitle: "question", defaultColumns: ["question", "order"] },
   defaultSort: "order",
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, create: signedIn, update: signedIn, delete: signedIn },
+  versions: { maxPerDoc: 25 },
   hooks: revalidateCollection(),
   fields: [
     { name: "question", type: "text", required: true },

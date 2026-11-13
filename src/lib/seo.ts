@@ -13,12 +13,16 @@ export function pageMetadata({
   description,
   path,
   absoluteTitle = false,
+  image,
 }: {
   title: string;
   description: string;
   path: string;
   absoluteTitle?: boolean;
+  /** Share image (e.g. a camp's cover photo); the site-wide one is used otherwise. */
+  image?: { src: string; alt: string };
 }): Metadata {
+  const images = image ? [{ url: image.src, alt: image.alt }] : undefined;
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
@@ -30,8 +34,15 @@ export function pageMetadata({
       url: path,
       title,
       description,
+      ...(images ? { images } : {}),
     },
-    twitter: { card: "summary_large_image", site: "@sarvamangalorg", title, description },
+    twitter: {
+      card: "summary_large_image",
+      site: "@sarvamangalorg",
+      title,
+      description,
+      ...(images ? { images } : {}),
+    },
   };
 }
 
@@ -105,6 +116,26 @@ export function faqJsonLd(faqs: Faq[]) {
       acceptedAnswer: { "@type": "Answer", text: f.answer },
     })),
   };
+}
+
+export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: item.name,
+      item: `${SITE_URL}${item.path}`,
+    })),
+  };
+}
+
+/** Keep a meta description within what Google shows (about 160 characters). */
+export function clampDescription(text: string, max = 158) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, clean.lastIndexOf(" ", max - 1)).replace(/[,;:—–-]$/, "")}…`;
 }
 
 export function eventJsonLd(e: CampEvent) {

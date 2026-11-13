@@ -73,6 +73,24 @@ export async function getEventTimeline(): Promise<EventTimeline> {
   };
 }
 
+/** One camp by its slug (published only), or null. */
+export async function getEvent(slug: string) {
+  "use cache";
+  cacheTag(CMS_TAGS.all, CMS_TAGS.event);
+  cacheLife("max");
+  const events = await getEvents();
+  return events.find((e) => e.slug === slug) ?? null;
+}
+
+/** One cause by its slug, or null. */
+export async function getCause(slug: string) {
+  "use cache";
+  cacheTag(CMS_TAGS.all, CMS_TAGS.cause);
+  cacheLife("max");
+  const causes = await getCauses();
+  return causes.find((c) => c.slug === slug) ?? null;
+}
+
 export async function getTestimonials() {
   "use cache";
   cacheTag(CMS_TAGS.all, CMS_TAGS.testimonial);

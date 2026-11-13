@@ -1,6 +1,42 @@
-// Admin panel tweaks. Uses Payload's theme variables so light and dark modes both work.
+// Admin panel styles. Built on Payload's theme variables (--theme-elevation-*,
+// --theme-text…) so light and dark modes both work; brand colours mirror the
+// website's tokens in src/app/(frontend)/globals.css.
 
-// Labelled "Log out" buttons (src/payload/components/LogoutButton.tsx).
+:root {
+  --sm-crimson: #c8103a;
+  --sm-crimson-deep: #8e0b36;
+  --sm-ink: #17193b;
+  --sm-marigold: #f6b21b;
+  --sm-font-display: var(--font-fraunces), var(--font-hindi), Georgia, serif;
+
+  // The website's body face (fonts are loaded in src/app/(payload)/layout.tsx).
+  --font-body: var(--font-inter), var(--font-hindi), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+// ── Brand ─────────────────────────────────────────────────────────
+// Primary buttons (Save, Publish, Create) in the logo's crimson.
+.btn--style-primary {
+  --bg-color: var(--sm-crimson);
+  --hover-bg: var(--sm-crimson-deep);
+  --color: #fff;
+  --hover-color: #fff;
+}
+
+// Page titles in the website's display face.
+.doc-header__title,
+.list-header__title,
+.global-edit .doc-header__title {
+  font-family: var(--sm-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+// The active page in the sidebar gets the crimson marker.
+.nav__link-indicator {
+  background: var(--sm-crimson);
+}
+
+// ── Labelled "Log out" buttons (src/payload/components/LogoutButton.tsx) ──
 .sarvamangal-logout {
   display: inline-flex;
   align-items: center;
@@ -29,5 +65,297 @@
 
   &--sidebar {
     padding: 0.5rem 0.875rem;
+  }
+}
+
+// ── Sign-in screen ────────────────────────────────────────────────
+// A camp photo under an ink wash, with the form on a card.
+.template-minimal:has(.login__brand) {
+  background:
+    linear-gradient(160deg, rgb(23 25 59 / 0.92), rgb(23 25 59 / 0.72)),
+    url("/images/children-notebook-distribution.jpg") center / cover no-repeat;
+
+  .template-minimal__wrap {
+    background: var(--theme-elevation-0);
+    border-radius: 24px;
+    padding: 2.5rem 2.25rem 2rem;
+    box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.7);
+  }
+
+  .login__brand {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.sm-login-intro {
+  margin-bottom: 1.5rem;
+
+  &__title {
+    margin: 0;
+    font-family: var(--sm-font-display);
+    font-size: 1.75rem;
+    line-height: 1.15;
+    font-weight: 600;
+  }
+
+  &__text {
+    margin: 0.5rem 0 0;
+    color: var(--theme-elevation-500);
+  }
+}
+
+// ── Dashboard (src/payload/components/Dashboard.tsx) ──────────────
+.sm-dash {
+  padding-block: 1.5rem 0.5rem;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--theme-elevation-100);
+  }
+
+  &__eyebrow {
+    margin: 0;
+    color: var(--sm-crimson);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin: 0.35rem 0 0;
+    font-family: var(--sm-font-display);
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  &__lead {
+    margin: 0.5rem 0 0;
+    color: var(--theme-elevation-500);
+    font-size: 1rem;
+  }
+
+  &__site {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--theme-elevation-150);
+    color: var(--theme-text);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 150ms ease, background-color 150ms ease;
+
+    &:hover {
+      border-color: var(--theme-elevation-400);
+      background: var(--theme-elevation-50);
+    }
+  }
+
+  &__h2 {
+    margin: 2rem 0 0.85rem;
+    color: var(--theme-elevation-500);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+
+    &--all {
+      margin-top: 2.5rem;
+    }
+  }
+
+  // Quick actions
+  &__actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.85rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    height: 100%;
+    padding: 1.15rem 1.15rem 1.25rem;
+    border-radius: 16px;
+    border: 1px solid var(--theme-elevation-150);
+    background: var(--theme-elevation-0);
+    color: var(--theme-text);
+    text-decoration: none;
+    transition:
+      border-color 150ms ease,
+      box-shadow 200ms ease,
+      transform 200ms ease;
+
+    &:hover {
+      border-color: var(--theme-elevation-300);
+      box-shadow: 0 18px 30px -24px rgb(0 0 0 / 0.45);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
+
+    &--primary {
+      border-color: var(--sm-crimson);
+      background: var(--sm-crimson);
+      color: #fff;
+
+      .sm-dash__icon {
+        background: rgb(255 255 255 / 0.16);
+        color: #fff;
+      }
+
+      .sm-dash__action-text {
+        color: rgb(255 255 255 / 0.85);
+      }
+
+      &:hover {
+        border-color: var(--sm-crimson-deep);
+        background: var(--sm-crimson-deep);
+      }
+    }
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    margin-bottom: 0.4rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--sm-crimson) 10%, transparent);
+    color: var(--sm-crimson);
+  }
+
+  &__action-title {
+    font-family: var(--sm-font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  &__action-text {
+    color: var(--theme-elevation-500);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  // At a glance
+  &__glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.85rem;
+  }
+
+  &__panel {
+    padding: 1.15rem 1.2rem 1.2rem;
+    border-radius: 16px;
+    background: var(--theme-elevation-50);
+    border: 1px solid var(--theme-elevation-100);
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+    color: var(--theme-elevation-500);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+
+    svg {
+      color: var(--sm-crimson);
+    }
+  }
+
+  &__big {
+    margin: 0;
+    font-family: var(--sm-font-display);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  &__meta {
+    margin: 0.3rem 0 0;
+    color: var(--theme-elevation-500);
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  &__link {
+    display: inline-block;
+    margin-top: 0.7rem;
+    color: var(--sm-crimson);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--sm-crimson) 35%, transparent);
+    text-underline-offset: 4px;
+
+    &:hover {
+      text-decoration-color: var(--sm-crimson);
+    }
+  }
+
+  &__drafts {
+    margin: 0.5rem 0 0;
+    padding-left: 1.1rem;
+
+    a {
+      color: var(--sm-crimson);
+      font-weight: 500;
+    }
+  }
+
+  // Admin-only links
+  &__admin {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__admin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--theme-elevation-150);
+    color: var(--theme-text);
+    font-weight: 500;
+    text-decoration: none;
+
+    svg {
+      color: var(--sm-crimson);
+    }
+
+    &:hover {
+      border-color: var(--theme-elevation-400);
+      background: var(--theme-elevation-50);
+    }
   }
 }

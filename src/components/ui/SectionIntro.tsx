@@ -21,14 +21,14 @@ export function SectionIntro({ id, eyebrow, title, children, tone = "light", ali
       <h2
         id={id}
         className={cn(
-          "mt-3 text-[2.15rem] font-semibold tracking-[-0.015em] sm:text-5xl",
+          "mt-3 text-[2rem] font-semibold tracking-[-0.015em] sm:text-5xl",
           dark && "text-white",
         )}
       >
         {title}
       </h2>
       {children ? (
-        <div className={cn("mt-5 text-lg leading-relaxed", dark ? "text-ink-200" : "text-ink-muted")}>
+        <div className={cn("mt-4 text-base leading-relaxed sm:mt-5 sm:text-lg", dark ? "text-ink-200" : "text-ink-muted")}>
           {children}
         </div>
       ) : null}

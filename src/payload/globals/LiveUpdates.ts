@@ -1,5 +1,7 @@
 import type { GlobalConfig } from "payload";
 
+import { anyone, signedIn } from "../access";
+
 import { revalidateGlobal } from "../hooks/revalidate";
 
 /** Icons editors can pick for a counter. Keep in sync with `LiveIcon` in src/lib/cms/types.ts. */
@@ -25,9 +27,10 @@ export const LiveUpdates: GlobalConfig = {
   admin: {
     group: "Homepage",
     description:
-      "Running totals shown in the scrolling “Live” band at the top of the homepage. Update a number and save — the site shows it straight away, with today’s date as “updated”. Latest camp, next camp and the camp count are added automatically.",
+      "Running totals shown in the scrolling “Live” band at the top of the homepage. Update a number and save — the site shows it straight away, with today’s date as “updated”. The latest camp and the camp count are added automatically.",
   },
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, update: signedIn },
+  versions: { max: 25 },
   hooks: { afterChange: [revalidateGlobal()] },
   fields: [
     {

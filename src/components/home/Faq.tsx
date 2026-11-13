@@ -8,7 +8,7 @@ export function Faq({ faqs, email }: { faqs: FaqItem[]; email: string }) {
   if (faqs.length === 0) return null;
 
   return (
-    <section aria-labelledby="faq-title" className="py-20 lg:py-28">
+    <section aria-labelledby="faq-title" className="defer-render py-14 sm:py-20 lg:py-28">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
         <div className="lg:col-span-4">
           <SectionIntro id="faq-title" eyebrow="Questions" title="Before you give">

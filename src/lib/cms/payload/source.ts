@@ -1,6 +1,7 @@
 import "server-only";
 
 import config from "@payload-config";
+import { convertLexicalToHTML } from "@payloadcms/richtext-lexical/html";
 import { getPayload } from "payload";
 
 import { indiaDate } from "@/lib/format";
@@ -118,6 +119,14 @@ async function causes(): Promise<Cause[]> {
   });
 }
 
+/** The write-up as HTML, or nothing when the editor left it empty. */
+function richTextToHtml(body: PEvent["body"]): string | undefined {
+  if (!body?.root?.children?.length) return undefined;
+  const html = convertLexicalToHTML({ data: body as Parameters<typeof convertLexicalToHTML>[0]["data"] }).trim();
+  // An editor that was opened and cleared leaves an empty paragraph behind.
+  return html.replace(/<p>\s*(<br\s*\/?>)?\s*<\/p>/g, "").trim() ? html : undefined;
+}
+
 function toEvent(e: PEvent): CampEvent | null {
   const startDate = toDate(e.startDate);
   if (!e.slug || !startDate) return null;
@@ -136,6 +145,10 @@ function toEvent(e: PEvent): CampEvent | null {
     state: e.state,
     summary: e.summary ?? undefined,
     highlights: e.highlights?.map((h) => h.item.trim()).filter(Boolean),
+    bodyHtml: richTextToHtml(e.body),
+    gallery: (e.gallery ?? []).map((m) => toImage(m, e.title)).filter((m): m is ImageRef => Boolean(m)),
+    seoTitle: e.seoTitle?.trim() || undefined,
+    seoDescription: e.seoDescription?.trim() || undefined,
     coverImage: toImage(e.coverImage, `${e.title} — Sarvamangal Education Trust`),
     beneficiaries: b?.count ? { count: b.count, label: b.label || "people", approximate: Boolean(b.approximate) } : undefined,
     partners: e.partners?.map((p) => p.name).filter(Boolean),
@@ -148,6 +161,8 @@ async function events(): Promise<CampEvent[]> {
     depth: 1,
     pagination: false,
     sort: "-startDate",
+    // Drafts are being prepared in /admin and aren't on the website yet.
+    where: { _status: { equals: "published" } },
   });
   return docs.map(toEvent).filter((e): e is CampEvent => e !== null);
 }
@@ -161,6 +176,7 @@ async function testimonials() {
     role: t.role ?? "",
     supporterSince: t.supporterSince ?? undefined,
     causeSlug: causeRef(t.cause)?.slug,
+    photo: toImage(t.photo, t.name),
   }));
 }
 

@@ -3,6 +3,8 @@ import { fileURLToPath } from "url";
 
 import type { CollectionConfig } from "payload";
 
+import { anyone, signedIn } from "../access";
+
 import { revalidateCollection } from "../hooks/revalidate";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,7 +13,7 @@ export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Photo", plural: "Photos & logos" },
   admin: { group: "Content", description: "Every photo and logo used on the site." },
-  access: { read: () => true },
+  access: { read: anyone, create: signedIn, update: signedIn, delete: signedIn },
   // Photos appear everywhere, so a change refreshes all cached content.
   hooks: revalidateCollection(),
   upload: {

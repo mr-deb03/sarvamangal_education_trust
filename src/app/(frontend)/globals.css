@@ -31,9 +31,9 @@
 
 /* Font families point at next/font variables set on <html> in layout.tsx. */
 @theme inline {
-  /* Mukta after Playfair: Hindi text and the ₹ sign in headings use Mukta's glyphs. */
-  --font-display: var(--font-playfair), var(--font-mukta), Georgia, serif;
-  --font-sans: var(--font-mukta), system-ui, sans-serif;
+  /* Mukta comes last in both: it only draws Hindi text and the ₹ sign. */
+  --font-display: var(--font-fraunces), var(--font-hindi), Georgia, serif;
+  --font-sans: var(--font-inter), var(--font-hindi), system-ui, sans-serif;
 }
 
 @layer base {
@@ -56,8 +56,14 @@
     background: var(--color-paper);
     color: var(--color-ink-soft);
     font-family: var(--font-sans);
-    font-size: 1.0625rem;
+    font-size: 1rem;
     line-height: 1.6;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      font-size: 1.0625rem;
+    }
   }
 
   h1,
@@ -74,8 +80,7 @@
     text-wrap: pretty;
   }
 
-  /* Playfair Display defaults to old-style figures (digits that dip below the
-     line). Amounts, years and stats read better with full-height digits. */
+  /* Full-height (lining) figures for amounts, years and stats in display type. */
   h1,
   h2,
   h3,
@@ -166,6 +171,43 @@
   }
 }
 
+/* ── Floating WhatsApp (components/layout/WhatsAppChat.tsx) ─────
+ * WhatsApp's own green, used nowhere else. Plain CSS rather than a theme token,
+ * so it never depends on the Tailwind theme being reloaded.
+ * Phones: the button rests in the corner and lifts above the sticky Donate bar
+ * only while that bar is showing (MobileDonateBar sets data-donate-bar on <html>).
+ */
+.whatsapp-green {
+  background-color: #25d366;
+}
+
+.whatsapp-fab {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transition: transform 300ms var(--ease-out-soft);
+}
+
+html[data-donate-bar="shown"] .whatsapp-fab {
+  transform: translateY(-4.75rem);
+}
+
+@media (min-width: 768px) {
+  .whatsapp-fab {
+    bottom: 1.5rem;
+  }
+
+  html[data-donate-bar="shown"] .whatsapp-fab {
+    transform: none;
+  }
+}
+
+/* The floating WhatsApp welcome bubble settles into place. */
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
 @keyframes rise {
   to {
     opacity: 1;
@@ -190,8 +232,9 @@
   transform: translateY(18px);
 }
 
-/* ── Photo wall (components/home/PhotoWall.tsx) ─────────────────
- * Tiles wave in from the top left on load; the hero card lifts into place.
+/* ── Photo wall (components/home/HeroWall.tsx, PhotoWall.tsx) ────
+ * Tiles wave in on load and the hero card lifts into place; then the hero's
+ * rows of photos glide sideways (HeroWall), alternating direction.
  * Decorative only — the card's text is never hidden, and nothing moves under
  * reduced motion.
  */
@@ -203,6 +246,30 @@
 
   .card-lift {
     animation: card-lift 850ms var(--ease-out-soft) 120ms both;
+  }
+
+  /* Hero rows glide sideways once the browser has added each row's second copy
+     (data-ready), so the loop is seamless; alternate rows run the other way. */
+  .hero-row[data-ready] .hero-track {
+    animation: hero-row var(--row-duration, 80s) linear infinite;
+  }
+
+  .hero-row[data-ready][data-direction="right"] .hero-track {
+    animation-direction: reverse;
+  }
+
+  .hero-row:hover .hero-track {
+    animation-play-state: paused;
+  }
+}
+
+.hero-track {
+  will-change: transform;
+}
+
+@keyframes hero-row {
+  to {
+    transform: translateX(-50%);
   }
 }
 
@@ -250,6 +317,95 @@
   to {
     transform: translateX(-50%);
   }
+}
+
+/* ── Testimonial wall (components/home/Voices.tsx) ───────────────
+ * Each column's track holds two identical copies and slides by one copy,
+ * up or down, at its own speed. A column pauses while it's hovered or touched.
+ * Under reduced motion the wall is hidden and a still grid shows instead.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .voices-track {
+    animation: voices-scroll var(--voices-duration, 48s) linear infinite;
+  }
+
+  .voices-track[data-direction="down"] {
+    animation-direction: reverse;
+  }
+
+  .voices-col:hover .voices-track,
+  .voices-col:active .voices-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes voices-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+/* Below-the-fold homepage sections: the browser skips their layout and paint
+   until they come near the screen, so the first screen paints sooner on slow
+   phones. Content stays in the HTML (search engines, find-in-page, screen
+   readers); "auto" remembers each section's real height once it has rendered. */
+.defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+
+/* A camp's written-up story (HTML from the CMS rich-text editor). */
+.prose-camp {
+  color: var(--color-ink-soft);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose-camp > * + * {
+  margin-top: 1.1em;
+}
+
+.prose-camp h2,
+.prose-camp h3 {
+  margin-top: 1.8em;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.prose-camp a {
+  color: var(--color-crimson);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose-camp ul,
+.prose-camp ol {
+  padding-left: 1.25rem;
+}
+
+.prose-camp ul {
+  list-style: disc;
+}
+
+.prose-camp ol {
+  list-style: decimal;
+}
+
+.prose-camp blockquote {
+  border-left: 3px solid var(--color-crimson);
+  padding-left: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--color-ink);
+}
+
+.prose-camp img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 
 /* The camp register's date column. */

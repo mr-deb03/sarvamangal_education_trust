@@ -22,14 +22,15 @@ export function DonationPicker({ tiers, donateUrl }: { tiers: DonationTier[]; do
       {tiers.length > 0 ? (
         <fieldset>
           <legend className="font-display text-2xl font-semibold text-ink">Pick an amount</legend>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {/* Phones: a compact 2 × 2 grid (amount + title); the chosen amount's outcome shows below. */}
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-3">
             {tiers.map((tier) => {
               const checked = tier.id === selectedId;
               return (
                 <label
                   key={tier.id}
                   className={cn(
-                    "relative flex min-h-[8.5rem] cursor-pointer flex-col rounded-2xl border-2 p-4 transition-colors duration-200 sm:p-5",
+                    "relative flex cursor-pointer flex-col rounded-2xl border-2 p-3.5 transition-colors duration-200 sm:min-h-[8.5rem] sm:p-5",
                     "has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-crimson",
                     checked ? "border-crimson bg-crimson/[0.04]" : "border-line hover:border-ink/30",
                   )}
@@ -42,18 +43,25 @@ export function DonationPicker({ tiers, donateUrl }: { tiers: DonationTier[]; do
                     onChange={() => setSelectedId(tier.id)}
                     className="sr-only"
                   />
-                  <span className="font-display text-[1.9rem] leading-none font-semibold text-ink">
+                  <span className="font-display text-[1.55rem] leading-none font-semibold text-ink sm:text-[1.9rem]">
                     {tier.amount ? formatINR(tier.amount) : "Any amount"}
                   </span>
-                  <span className="mt-2 font-semibold text-ink">{tier.title}</span>
-                  <span className="mt-1 text-sm leading-snug text-ink-muted">{tier.outcome}</span>
+                  <span className="mt-1.5 text-[0.92rem] leading-snug font-semibold text-ink sm:mt-2 sm:text-base">
+                    {tier.title}
+                  </span>
+                  <span className="mt-1 hidden text-sm leading-snug text-ink-muted sm:block">{tier.outcome}</span>
                   {checked ? (
-                    <CircleCheck aria-hidden className="absolute top-4 right-4 size-5 text-crimson" />
+                    <CircleCheck aria-hidden className="absolute top-3 right-3 size-4 text-crimson sm:top-4 sm:right-4 sm:size-5" />
                   ) : null}
                 </label>
               );
             })}
           </div>
+          {selected ? (
+            <p aria-live="polite" className="mt-3 text-sm leading-snug text-ink-muted sm:hidden">
+              {selected.outcome}
+            </p>
+          ) : null}
         </fieldset>
       ) : null}
 

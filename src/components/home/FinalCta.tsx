@@ -22,7 +22,8 @@ export function FinalCta({ donateUrl, timeline }: { donateUrl: string; timeline:
   return (
     <section
       aria-labelledby="final-title"
-      className="relative overflow-hidden bg-linear-to-b from-crimson to-crimson-deep text-white [--focus-ring:white]"
+      data-donate-zone
+      className="defer-render relative overflow-hidden bg-linear-to-b from-crimson to-crimson-deep text-white [--focus-ring:white]"
     >
       {recent.length > 0 ? (
         // Row-reversed: the "next" tile sits at the far right, the newest camp beside it.
@@ -36,7 +37,7 @@ export function FinalCta({ donateUrl, timeline }: { donateUrl: string; timeline:
         </Reveal>
       ) : null}
 
-      <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-24">
+      <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 sm:py-20 lg:py-24">
         <p className="eyebrow text-marigold-soft">The next page of the register</p>
         <h2 id="final-title" className="mt-3 text-4xl font-semibold text-white sm:text-6xl">
           The next camp is already being planned.

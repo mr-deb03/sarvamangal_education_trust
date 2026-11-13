@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import type { Cause } from "@/lib/cms/types";
 import { NAV_LINKS, ROUTES, SITE_NAME } from "@/lib/site";
 
+import { HomeLink } from "./HomeLink";
 import { MobileNav } from "./MobileNav";
 
 type Props = {
@@ -16,9 +17,9 @@ type Props = {
 
 export function Header({ causes, donateUrl, phone }: Props) {
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-white sm:bg-white/90 sm:backdrop-blur-md sm:supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:h-[4.75rem] lg:px-8">
-        <Link href={ROUTES.home} className="shrink-0 rounded-md" aria-label={`${SITE_NAME} — home`}>
+        <HomeLink className="shrink-0 rounded-md" aria-label={`${SITE_NAME} — home`}>
           <Image
             src="/brand/sarvamangal-logo.png"
             alt=""
@@ -28,7 +29,7 @@ export function Header({ causes, donateUrl, phone }: Props) {
             sizes="160px"
             className="h-10 w-auto lg:h-11"
           />
-        </Link>
+        </HomeLink>
 
         <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex items-center gap-1">
@@ -77,7 +78,7 @@ export function Header({ causes, donateUrl, phone }: Props) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <ButtonLink href={donateUrl} size="sm" className="px-5">
+          <ButtonLink href={donateUrl} size="sm" className="px-4 sm:px-5">
             <HeartHandshake aria-hidden />
             Donate
           </ButtonLink>

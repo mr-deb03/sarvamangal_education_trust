@@ -1,42 +1,43 @@
-import { Quote } from "lucide-react";
 import Image from "next/image";
 
-import { Reveal } from "@/components/motion/Reveal";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import type { Supporter, Testimonial } from "@/lib/cms/types";
 
+import { INITIALS_STYLES, TestimonialCard } from "./TestimonialCard";
+import { TestimonialWall } from "./TestimonialWall";
+
 export function Voices({ testimonials, supporters }: { testimonials: Testimonial[]; supporters: Supporter[] }) {
   if (testimonials.length === 0 && supporters.length === 0) return null;
+  // Initials colours in list order, so neighbours never share one.
+  const tones = new Map(testimonials.map((t, i) => [t.id, INITIALS_STYLES[i % INITIALS_STYLES.length]!]));
 
   return (
-    <section aria-labelledby="voices-title" className="py-20 lg:py-28">
+    <section aria-labelledby="voices-title" className="defer-render py-14 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionIntro id="voices-title" eyebrow="Our supporters" title="Why they keep coming back">
           Some have stood with us since our very first year.
         </SectionIntro>
 
         {testimonials.length > 0 ? (
-          <ul className="mt-12 grid gap-5 lg:mt-14 lg:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <Reveal as="li" key={t.id} delayMs={i * 100}>
-                <figure className="flex h-full flex-col rounded-2xl bg-paper-2 p-6 ring-1 ring-line sm:p-7">
-                  <Quote aria-hidden className="size-7 text-crimson" strokeWidth={1.5} />
-                  <blockquote className="mt-4 flex-1 leading-relaxed text-ink-soft">{t.quote}</blockquote>
-                  <figcaption className="mt-6 border-t border-line pt-5">
-                    <p className="font-display text-lg font-semibold text-ink">{t.name}</p>
-                    <p className="text-sm text-ink-muted">{t.role}</p>
-                    {t.supporterSince ? (
-                      <p className="mt-2 text-sm font-semibold text-crimson">Supporter since {t.supporterSince}</p>
-                    ) : null}
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </ul>
+          <>
+            {/* The moving wall (tablet and up, built in the browser): columns drift up and down,
+                pausing under the mouse. Hidden under reduced motion. */}
+            <TestimonialWall items={testimonials.map((t) => ({ t, tone: tones.get(t.id) }))} />
+
+            {/* Each testimonial once: what screen readers read, a still swipe row on phones,
+                and a still grid for visitors who turn off motion. */}
+            <ul className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto overscroll-x-contain px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 motion-safe:sm:sr-only lg:grid-cols-3 lg:gap-5 [&::-webkit-scrollbar]:hidden">
+              {testimonials.map((t) => (
+                <li key={t.id} className="w-[86%] shrink-0 snap-start sm:w-auto">
+                  <TestimonialCard t={t} tone={tones.get(t.id)} />
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
 
         {supporters.length > 0 ? (
-          <div className="mt-14 border-t border-line pt-10">
+          <div className="mt-10 border-t border-line pt-8 sm:mt-14 sm:pt-10">
             <p className="eyebrow text-center text-ink-muted">With the support of</p>
             <ul className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
               {supporters.map((s) => (

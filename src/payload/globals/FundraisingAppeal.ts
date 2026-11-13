@@ -1,5 +1,7 @@
 import type { GlobalConfig } from "payload";
 
+import { anyone, signedIn } from "../access";
+
 import { revalidateGlobal } from "../hooks/revalidate";
 
 type Siblings = { siblingData: Record<string, unknown> };
@@ -27,7 +29,8 @@ export const FundraisingAppeal: GlobalConfig = {
     description:
       "The current appeal on the homepage. Update “So far” as donations come in or as more is given out.",
   },
-  access: { read: () => true },
+  access: { read: anyone, readVersions: signedIn, update: signedIn },
+  versions: { max: 25 },
   hooks: { afterChange: [revalidateGlobal()] },
   fields: [
     {

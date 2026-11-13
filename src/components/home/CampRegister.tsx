@@ -9,7 +9,7 @@ import type { CampEvent, EventTimeline, ImpactStat } from "@/lib/cms/types";
 import { eventDayLabel } from "@/lib/event-links";
 import { formatBeneficiaries, formatDate, formatPlace } from "@/lib/format";
 import { ROUTES } from "@/lib/site";
-import { whatsappHref } from "@/lib/utils";
+import { cn, whatsappHref } from "@/lib/utils";
 
 const PAST_ON_PAGE = 6;
 
@@ -34,7 +34,7 @@ export function CampRegister({
   );
 
   return (
-    <section id="register" aria-labelledby="register-title" className="scroll-mt-20 py-20 lg:py-28">
+    <section id="register" aria-labelledby="register-title" className="defer-render scroll-mt-20 py-14 sm:py-20 lg:py-28">
       <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8">
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-28">
@@ -44,11 +44,16 @@ export function CampRegister({
             </SectionIntro>
 
             {stats.length > 0 ? (
-              <dl className="mt-10 grid gap-x-6 gap-y-7 sm:grid-cols-3 lg:grid-cols-1">
+              <dl className="mt-8 grid gap-x-6 gap-y-4 sm:mt-10 sm:grid-cols-3 sm:gap-y-7 lg:grid-cols-1">
                 {stats.map((s) => (
-                  <div key={s.label} className="flex flex-col-reverse border-l-2 border-crimson pl-4">
-                    <dt className="mt-1 text-[0.95rem] leading-snug text-ink-muted">{s.label}</dt>
-                    <dd className="font-display text-[2.6rem] leading-none font-semibold text-ink">{s.value}</dd>
+                  <div
+                    key={s.label}
+                    className="flex flex-col-reverse border-l-2 border-crimson pl-4 max-sm:flex-row-reverse max-sm:items-center max-sm:justify-end max-sm:gap-4"
+                  >
+                    <dt className="text-[0.95rem] leading-snug text-ink-muted sm:mt-1">{s.label}</dt>
+                    <dd className="min-w-[5.25rem] shrink-0 font-display text-[2.1rem] leading-none font-semibold text-ink sm:min-w-0 sm:text-[2.6rem]">
+                      {s.value}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -101,7 +106,7 @@ export function CampRegister({
                         href={notifyHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 font-semibold text-crimson underline decoration-crimson/40 underline-offset-4 hover:decoration-crimson"
+                        className="inline-flex min-h-11 items-center gap-1 font-semibold text-crimson underline decoration-crimson/40 underline-offset-4 hover:decoration-crimson sm:min-h-0"
                       >
                         <MessageCircle aria-hidden className="size-4" />
                         Message us on WhatsApp
@@ -110,8 +115,9 @@ export function CampRegister({
                   </div>
                 </li>
               )}
-              {past.map((e) => (
-                <Entry key={e.id} event={e} />
+              {/* Phones show the four latest; "Browse all" has the rest. */}
+              {past.map((e, i) => (
+                <RegisterEntry key={e.id} event={e} className={i >= 4 ? "max-sm:hidden" : undefined} />
               ))}
             </ol>
 
@@ -122,9 +128,15 @@ export function CampRegister({
   );
 }
 
-function Entry({ event }: { event: CampEvent }) {
+/** One camp in the register: date in the margin, title, place, cause, people served. */
+export function RegisterEntry({ event, className }: { event: CampEvent; className?: string }) {
   return (
-    <li className="group relative grid grid-cols-[var(--margin-w)_1fr] border-b border-line transition-colors last:border-b-0 hover:bg-paper-2/70">
+    <li
+      className={cn(
+        "group relative grid grid-cols-[var(--margin-w)_1fr] border-b border-line transition-colors last:border-b-0 hover:bg-paper-2/70",
+        className,
+      )}
+    >
       <p className="py-5 pr-3 text-right leading-tight text-ink tabular-nums sm:pr-5">
         <time dateTime={event.startDate}>
           <span className="block font-semibold sm:text-[1.05rem]">{formatDate(event.startDate, { day: "numeric", month: "short" })}</span>

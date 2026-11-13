@@ -1,6 +1,6 @@
 import type { CampEvent } from "@/lib/cms/types";
 import { formatDate, formatPlace } from "@/lib/format";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { ROUTES, SITE_NAME, SITE_URL } from "@/lib/site";
 
 /**
  * Links that help people act on an upcoming camp: save it, find it, pass it on.
@@ -11,11 +11,8 @@ const DAY = 86_400_000;
 const compact = (date: string) => date.replaceAll("-", "");
 const nextDay = (date: string) => new Date(Date.parse(`${date}T00:00:00Z`) + DAY).toISOString().slice(0, 10);
 
-/**
- * Where shared and saved links point: the homepage section for now.
- * Phase 2: take the event and return `${SITE_URL}${ROUTES.event(e.slug)}` once event pages ship.
- */
-export const upcomingUrl = () => `${SITE_URL}/#coming-up`;
+/** Where shared and saved links point: the camp's own page. */
+export const upcomingUrl = (e: CampEvent) => `${SITE_URL}${ROUTES.event(e.slug)}`;
 
 /** "Venue, Area, City, State" — what a maps search or calendar needs. */
 export function eventAddress(e: CampEvent) {
@@ -46,7 +43,7 @@ export function calendarHref(e: CampEvent) {
       `Organised by ${SITE_NAME}. Entry is free.`,
       e.timeLabel ? `Time: ${e.timeLabel}` : null,
       e.summary ?? null,
-      upcomingUrl(),
+      upcomingUrl(e),
     ]
       .filter(Boolean)
       .join("\n\n"),
@@ -63,6 +60,6 @@ export function directionsHref(e: CampEvent) {
 /** A WhatsApp message anyone can forward to family or a building group. */
 export function shareHref(e: CampEvent) {
   const when = [eventDayLabel(e), e.timeLabel].filter(Boolean).join(", ");
-  const text = `${e.title} — ${when}, at ${eventPlace(e)}. Entry is free. Organised by ${SITE_NAME}.\n${upcomingUrl()}`;
+  const text = `${e.title} — ${when}, at ${eventPlace(e)}. Entry is free. Organised by ${SITE_NAME}.\n${upcomingUrl(e)}`;
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
