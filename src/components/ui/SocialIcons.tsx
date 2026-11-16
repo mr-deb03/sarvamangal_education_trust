@@ -1,6 +1,8 @@
 import type { SVGProps } from "react";
 
 import type { SocialPlatform } from "@/lib/cms/types";
+import { SOCIAL_PLATFORM_OPTIONS } from "@/lib/cms/options";
+import { fill } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,13 +24,9 @@ const paths: Record<SocialPlatform, string> = {
     "M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.87.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81ZM9.55 15.57V8.43L15.82 12l-6.27 3.57Z",
 };
 
-export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
-  facebook: "Facebook",
-  instagram: "Instagram",
-  x: "X (Twitter)",
-  linkedin: "LinkedIn",
-  youtube: "YouTube",
-};
+/** Network names are proper nouns; they come from the same list as the admin's choices. */
+const platformName = (platform: SocialPlatform) =>
+  SOCIAL_PLATFORM_OPTIONS.find((o) => o.value === platform)?.label ?? platform;
 
 export function SocialIcon({ platform, ...props }: IconProps & { platform: SocialPlatform }) {
   return (
@@ -40,20 +38,25 @@ export function SocialIcon({ platform, ...props }: IconProps & { platform: Socia
 
 export function SocialLinks({
   socials,
+  label,
+  shortName,
   className,
 }: {
   socials: { platform: SocialPlatform; url: string }[];
+  /** e.g. "{shortName} on {platform}" (Buttons & labels → Screen-reader labels). */
+  label: string;
+  shortName: string;
   className?: string;
 }) {
   return (
     <ul className={cn("flex flex-wrap gap-2", className)}>
-      {socials.map((s) => (
-        <li key={s.platform}>
+      {socials.map((s, i) => (
+        <li key={`${s.platform}-${i}`}>
           <a
             href={s.url}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Sarvamangal on ${SOCIAL_LABELS[s.platform]}`}
+            aria-label={fill(label, { shortName, platform: platformName(s.platform) })}
             className="inline-flex size-11 items-center justify-center rounded-full ring-1 ring-white/20 transition-colors hover:bg-white/10 hover:text-white"
           >
             <SocialIcon platform={s.platform} className="size-[1.1rem]" />

@@ -1,35 +1,47 @@
 import Image from "next/image";
 
 import { SectionIntro } from "@/components/ui/SectionIntro";
-import type { Supporter, Testimonial } from "@/lib/cms/types";
+import type { SiteCopy, Supporter, Testimonial } from "@/lib/cms/types";
 
 import { INITIALS_STYLES, TestimonialCard } from "./TestimonialCard";
 import { TestimonialWall } from "./TestimonialWall";
 
-export function Voices({ testimonials, supporters }: { testimonials: Testimonial[]; supporters: Supporter[] }) {
+export function Voices({
+  testimonials,
+  supporters,
+  copy,
+}: {
+  testimonials: Testimonial[];
+  supporters: Supporter[];
+  copy: SiteCopy;
+}) {
   if (testimonials.length === 0 && supporters.length === 0) return null;
+  const text = copy.home.voices;
   // Initials colours in list order, so neighbours never share one.
-  const tones = new Map(testimonials.map((t, i) => [t.id, INITIALS_STYLES[i % INITIALS_STYLES.length]!]));
+  const tones = new Map(testimonials.map((t, i) => [t.id, INITIALS_STYLES[i % INITIALS_STYLES.length]]));
 
   return (
     <section aria-labelledby="voices-title" className="defer-render py-14 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionIntro id="voices-title" eyebrow="Our supporters" title="Why they keep coming back">
-          Some have stood with us since our very first year.
+        <SectionIntro id="voices-title" eyebrow={text.eyebrow} title={text.title}>
+          {text.intro}
         </SectionIntro>
 
         {testimonials.length > 0 ? (
           <>
             {/* The moving wall (tablet and up, built in the browser): columns drift up and down,
                 pausing under the mouse. Hidden under reduced motion. */}
-            <TestimonialWall items={testimonials.map((t) => ({ t, tone: tones.get(t.id) }))} />
+            <TestimonialWall
+              items={testimonials.map((t) => ({ t, tone: tones.get(t.id) }))}
+              supporterSince={text.supporterSince}
+            />
 
             {/* Each testimonial once: what screen readers read, a still swipe row on phones,
                 and a still grid for visitors who turn off motion. */}
             <ul className="-mx-4 mt-8 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto overscroll-x-contain px-4 pb-3 [scrollbar-width:none] sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 motion-safe:sm:sr-only lg:grid-cols-3 lg:gap-5 [&::-webkit-scrollbar]:hidden">
               {testimonials.map((t) => (
                 <li key={t.id} className="w-[86%] shrink-0 snap-start sm:w-auto">
-                  <TestimonialCard t={t} tone={tones.get(t.id)} />
+                  <TestimonialCard t={t} tone={tones.get(t.id)} supporterSince={text.supporterSince} />
                 </li>
               ))}
             </ul>
@@ -38,7 +50,7 @@ export function Voices({ testimonials, supporters }: { testimonials: Testimonial
 
         {supporters.length > 0 ? (
           <div className="mt-10 border-t border-line pt-8 sm:mt-14 sm:pt-10">
-            <p className="eyebrow text-center text-ink-muted">With the support of</p>
+            <p className="eyebrow text-center text-ink-muted">{text.supportersLabel}</p>
             <ul className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
               {supporters.map((s) => (
                 <li key={s.id}>

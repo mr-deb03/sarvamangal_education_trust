@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { anyone, signedIn } from "../access";
+import { signedIn } from "../access";
 
 import { revalidateGlobal } from "../hooks/revalidate";
 
@@ -29,7 +29,8 @@ export const FundraisingAppeal: GlobalConfig = {
     description:
       "The current appeal on the homepage. Update “So far” as donations come in or as more is given out.",
   },
-  access: { read: anyone, readVersions: signedIn, update: signedIn },
+  // Not public: a switched-off appeal may hold draft figures. The website reads it on the server.
+  access: { read: signedIn, readVersions: signedIn, update: signedIn },
   versions: { max: 25 },
   hooks: { afterChange: [revalidateGlobal()] },
   fields: [
@@ -73,6 +74,7 @@ export const FundraisingAppeal: GlobalConfig = {
           defaultValue: 0,
           admin: { width: "25%", description: "Rupees raised, or how many given out." },
           validate: (value: unknown, { siblingData }: Siblings) =>
+            (typeof value === "number" && value < 0 && "Can’t be less than 0.") ||
             !siblingData?.enabled ||
             (typeof value === "number" && value > 0) ||
             (isFilled(value) && isFilled(siblingData.goalAmount)) ||

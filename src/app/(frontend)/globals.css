@@ -29,11 +29,19 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Font families point at next/font variables set on <html> in layout.tsx. */
+/*
+ * Font families point at next/font variables set on <html> in layout.tsx.
+ * Mukta is deliberately not in these stacks: a web font in the stack downloads
+ * as soon as any matching character is laid out anywhere on the page (one
+ * Devanagari word in the footer, a ₹ in the hero) — 61 KB on the critical path.
+ * Small inline Hindi and ₹ use the phone's own Devanagari/₹ glyphs (every
+ * current Android, iOS, macOS and Windows has them); Mukta draws only the large
+ * Hindi type in the Give section (`.hindi-type`), switched on only when that
+ * section comes near the screen (<WhenNear> sets `data-near`).
+ */
 @theme inline {
-  /* Mukta comes last in both: it only draws Hindi text and the ₹ sign. */
-  --font-display: var(--font-fraunces), var(--font-hindi), Georgia, serif;
-  --font-sans: var(--font-inter), var(--font-hindi), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
 }
 
 @layer base {
@@ -104,6 +112,23 @@
   summary {
     cursor: pointer;
   }
+
+  /*
+   * The ₹ sign, in the system font. Inter and Fraunces list ₹ in their
+   * extended-Latin files without drawing it, so leaving it to the normal stack
+   * downloads both (~140 KB) only to fall through anyway. See <Rupees>.
+   */
+  .rupee {
+    font-family: system-ui, sans-serif;
+  }
+
+  .hindi-type {
+    font-family: system-ui, sans-serif;
+  }
+
+  [data-near] .hindi-type {
+    font-family: var(--font-mukta), system-ui, sans-serif;
+  }
   summary::-webkit-details-marker {
     display: none;
   }
@@ -150,13 +175,6 @@
   .accent-underline {
     animation: underline-in 700ms var(--ease-out-soft) both;
     animation-delay: var(--underline-delay, 650ms);
-  }
-
-  .rise {
-    opacity: 0;
-    transform: translateY(14px);
-    animation: rise 700ms var(--ease-out-soft) forwards;
-    animation-delay: var(--rise-delay, 0ms);
   }
 }
 
@@ -208,15 +226,8 @@ html[data-donate-bar="shown"] .whatsapp-fab {
   }
 }
 
-@keyframes rise {
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* ── Scroll reveal ───────────────────────────────────────────────
- * Visible by default. <Reveal> (components/motion/Reveal.tsx) sets
+ * Visible by default. <Reveal> (components/ui/Reveal.tsx) sets
  * data-reveal-state="hidden" on itself only after hydrating, and only when it
  * starts below the fold — crawlers, no-JS readers and re-mounts always see it.
  */
@@ -252,6 +263,7 @@ html[data-donate-bar="shown"] .whatsapp-fab {
      (data-ready), so the loop is seamless; alternate rows run the other way. */
   .hero-row[data-ready] .hero-track {
     animation: hero-row var(--row-duration, 80s) linear infinite;
+    will-change: transform; /* only while it moves: four wide layers cost phone GPU memory */
   }
 
   .hero-row[data-ready][data-direction="right"] .hero-track {
@@ -261,10 +273,6 @@ html[data-donate-bar="shown"] .whatsapp-fab {
   .hero-row:hover .hero-track {
     animation-play-state: paused;
   }
-}
-
-.hero-track {
-  will-change: transform;
 }
 
 @keyframes hero-row {

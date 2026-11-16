@@ -6,10 +6,19 @@ import { cn } from "@/lib/utils";
 export type Crumb = { label: string; href?: string };
 
 /** "Home › Camp register › This camp". The last crumb is the current page. */
-export function Breadcrumbs({ items, tone = "light" }: { items: Crumb[]; tone?: "light" | "dark" }) {
+export function Breadcrumbs({
+  items,
+  label,
+  tone = "light",
+}: {
+  items: Crumb[];
+  /** Screen-reader name of the trail (Buttons & labels → Screen-reader labels). */
+  label: string;
+  tone?: "light" | "dark";
+}) {
   const dark = tone === "dark";
   return (
-    <nav aria-label="Breadcrumb" className={cn("text-sm", dark ? "text-ink-200" : "text-ink-muted")}>
+    <nav aria-label={label} className={cn("text-sm", dark ? "text-ink-200" : "text-ink-muted")}>
       <ol className="flex flex-wrap items-center gap-x-1.5">
         {items.map((item, i) => (
           <li key={`${item.label}-${i}`} className="flex min-w-0 items-center gap-1.5">

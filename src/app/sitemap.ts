@@ -4,8 +4,10 @@ import { getCauses, getEvents } from "@/lib/cms";
 import { ROUTES, SITE_URL } from "@/lib/site";
 
 /**
- * Only routes that exist — never list a URL that would 404. Add each new
- * Phase 2 page (/about, /volunteer, /contact…) as it ships.
+ * Only routes that exist — never list a URL that would 404. Add each new page
+ * (/about, /volunteer, /contact…) as it ships. No `lastModified` on camps: the
+ * camp's date isn't when its page last changed, and a wrong date teaches Google
+ * to ignore the field.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [events, causes] = await Promise.all([getEvents(), getCauses()]);
@@ -20,7 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...events.map((e) => ({
       url: `${SITE_URL}${ROUTES.event(e.slug)}`,
-      lastModified: e.startDate,
       changeFrequency: "yearly" as const,
       priority: 0.6,
     })),

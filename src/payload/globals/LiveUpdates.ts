@@ -2,19 +2,8 @@ import type { GlobalConfig } from "payload";
 
 import { anyone, signedIn } from "../access";
 
+import { LIVE_ICON_OPTIONS } from "../../lib/cms/options";
 import { revalidateGlobal } from "../hooks/revalidate";
-
-/** Icons editors can pick for a counter. Keep in sync with `LiveIcon` in src/lib/cms/types.ts. */
-export const LIVE_ICONS = [
-  { label: "Pouch / school kit", value: "pouch" },
-  { label: "Notebook", value: "notebook" },
-  { label: "Blood drop", value: "blood" },
-  { label: "Stethoscope (health)", value: "health" },
-  { label: "People", value: "people" },
-  { label: "Plant (environment)", value: "tree" },
-  { label: "Graduation cap (students)", value: "school" },
-  { label: "Heart (care)", value: "heart" },
-] as const;
 
 /**
  * The live ticker under the header: running totals the trust updates as they
@@ -72,7 +61,7 @@ export const LiveUpdates: GlobalConfig = {
               type: "select",
               required: true,
               defaultValue: "heart",
-              options: [...LIVE_ICONS],
+              options: [...LIVE_ICON_OPTIONS],
               admin: { width: "25%" },
             },
           ],

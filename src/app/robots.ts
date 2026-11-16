@@ -7,8 +7,18 @@ export default function robots(): MetadataRoute.Robots {
   const isProduction = process.env.VERCEL_ENV ? process.env.VERCEL_ENV === "production" : true;
 
   return {
-    rules: isProduction ? [{ userAgent: "*", allow: "/", disallow: ["/api/", "/admin"] }] : [{ userAgent: "*", disallow: "/" }],
+    rules: isProduction
+      ? [
+          {
+            userAgent: "*",
+            // CMS photos live under /api/media/file/ — they appear in share previews and
+            // in Event structured data, so Google must be able to fetch them. The most
+            // specific rule wins, so the rest of /api/ stays blocked.
+            allow: ["/", "/api/media/file/"],
+            disallow: ["/api/", "/admin"],
+          },
+        ]
+      : [{ userAgent: "*", disallow: "/" }],
     sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
   };
 }

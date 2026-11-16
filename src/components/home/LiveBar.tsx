@@ -1,5 +1,5 @@
-import type { EventTimeline, LiveUpdates } from "@/lib/cms/types";
-import { formatDate } from "@/lib/format";
+import type { EventTimeline, LiveUpdates, SiteCopy } from "@/lib/cms/types";
+import { fill, formatDate } from "@/lib/format";
 
 import { LiveTicker, type TickerItem } from "./LiveTicker";
 
@@ -9,9 +9,10 @@ import { LiveTicker, type TickerItem } from "./LiveTicker";
  * and how many camps are on the register. (No next-camp item — owner's call;
  * upcoming camps have their own section.)
  */
-export function LiveBar({ live, timeline }: { live: LiveUpdates; timeline: EventTimeline }) {
+export function LiveBar({ live, timeline, copy }: { live: LiveUpdates; timeline: EventTimeline; copy: SiteCopy }) {
+  const text = copy.labels.ticker;
   const latest = timeline.past[0];
-  const firstYear = timeline.past.at(-1)?.startDate.slice(0, 4);
+  const done = timeline.past.length;
 
   const items: TickerItem[] = [
     ...live.counters.map((c, i) => ({
@@ -25,17 +26,20 @@ export function LiveBar({ live, timeline }: { live: LiveUpdates; timeline: Event
           {
             key: "latest",
             icon: "check" as const,
-            text: `Latest camp: ${latest.title}, ${formatDate(latest.startDate, { day: "numeric", month: "short", year: "numeric" })}`,
+            text: fill(text.latestCamp, {
+              title: latest.title,
+              date: formatDate(latest.startDate, { day: "numeric", month: "short", year: "numeric" }),
+            }),
           },
         ]
       : []),
-    ...(timeline.total > 0
+    ...(done > 0
       ? [
           {
             key: "register",
             icon: "register" as const,
-            figure: String(timeline.total),
-            text: `camps on the register${firstYear ? ` since ${firstYear}` : ""}`,
+            figure: done.toLocaleString("en-IN"),
+            text: timeline.firstYear ? fill(text.campsSince, { year: timeline.firstYear }) : text.campsTotal,
           },
         ]
       : []),
@@ -44,7 +48,13 @@ export function LiveBar({ live, timeline }: { live: LiveUpdates; timeline: Event
   return (
     <LiveTicker
       items={items}
-      updated={live.updatedAt ? formatDate(live.updatedAt, { day: "numeric", month: "short" }) : undefined}
+      text={{
+        live: text.live,
+        label: copy.labels.accessibility.liveUpdates,
+        updated: live.updatedAt
+          ? fill(text.updated, { date: formatDate(live.updatedAt, { day: "numeric", month: "short" }) })
+          : undefined,
+      }}
     />
   );
 }

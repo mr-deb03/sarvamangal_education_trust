@@ -2,7 +2,11 @@ import type { GlobalConfig } from "payload";
 
 import { adminsOnly, anyone, hiddenFromEditors, signedIn } from "../access";
 
+import { defaultIdentity } from "../../lib/cms/copy/defaults";
+import { SOCIAL_PLATFORM_OPTIONS } from "../../lib/cms/options";
+import { copyFields } from "../copy/fields";
 import { revalidateGlobal } from "../hooks/revalidate";
+import { httpsUrl } from "../validators";
 
 /** Any field left empty falls back to the website's built-in content. */
 export const SiteSettings: GlobalConfig = {
@@ -10,7 +14,7 @@ export const SiteSettings: GlobalConfig = {
   label: "Site settings",
   admin: {
     group: "Homepage",
-    description: "Homepage hero, numbers, contact details and links. Empty fields use the built-in text.",
+    description: "Identity & SEO, homepage hero, numbers, contact details and links. Empty fields use the built-in text.",
     hidden: hiddenFromEditors,
   },
   access: { read: anyone, readVersions: signedIn, update: adminsOnly },
@@ -20,6 +24,13 @@ export const SiteSettings: GlobalConfig = {
     {
       type: "tabs",
       tabs: [
+        {
+          name: "identity",
+          label: "Identity & SEO",
+          description:
+            "The trust's name and description as Google and share previews show them, the logo, the default share photo, and facts for search engines.",
+          fields: copyFields(defaultIdentity),
+        },
         {
           label: "Homepage hero",
           fields: [
@@ -41,13 +52,12 @@ export const SiteSettings: GlobalConfig = {
             },
             { name: "heroIntro", label: "Intro paragraph", type: "textarea", maxLength: 280 },
             {
-              type: "row",
-              fields: [
-                { name: "heroImage", label: "Main photo", type: "upload", relationTo: "media", admin: { width: "50%" } },
-                { name: "heroInsetImage", label: "Small inset photo", type: "upload", relationTo: "media", admin: { width: "50%" } },
-              ],
+              name: "heroImage",
+              label: "Main photo",
+              type: "upload",
+              relationTo: "media",
+              admin: { description: "The large photo in the hero's photo wall." },
             },
-            { name: "heroInsetCaption", label: "Inset caption", type: "text" },
           ],
         },
         {
@@ -144,7 +154,13 @@ export const SiteSettings: GlobalConfig = {
         {
           label: "Links",
           fields: [
-            { name: "donateUrl", label: "Donation page URL", type: "text" },
+            {
+              name: "donateUrl",
+              label: "Donation page URL",
+              type: "text",
+              admin: { description: "Full address of the donation page, starting with https://" },
+              validate: httpsUrl,
+            },
             {
               name: "whatsappNumber",
               label: "WhatsApp number",
@@ -165,16 +181,10 @@ export const SiteSettings: GlobalConfig = {
                       name: "platform",
                       type: "select",
                       required: true,
-                      options: [
-                        { label: "Facebook", value: "facebook" },
-                        { label: "Instagram", value: "instagram" },
-                        { label: "X (Twitter)", value: "x" },
-                        { label: "LinkedIn", value: "linkedin" },
-                        { label: "YouTube", value: "youtube" },
-                      ],
+                      options: [...SOCIAL_PLATFORM_OPTIONS],
                       admin: { width: "30%" },
                     },
-                    { name: "url", type: "text", required: true, admin: { width: "70%" } },
+                    { name: "url", type: "text", required: true, admin: { width: "70%" }, validate: httpsUrl },
                   ],
                 },
               ],

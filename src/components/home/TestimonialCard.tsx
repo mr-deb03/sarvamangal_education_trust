@@ -2,13 +2,23 @@ import { Quote } from "lucide-react";
 import Image from "next/image";
 
 import type { Testimonial } from "@/lib/cms/types";
+import { fill } from "@/lib/format";
 import { cn, focalStyle } from "@/lib/utils";
 
 /** Brand colours for initials, given out in list order. */
 export const INITIALS_STYLES = ["bg-crimson text-white", "bg-ink text-white", "bg-marigold text-ink"];
 
 /** One supporter's quote. Shared by the still list (server) and the moving wall (browser). */
-export function TestimonialCard({ t, tone }: { t: Testimonial; tone?: string }) {
+export function TestimonialCard({
+  t,
+  tone,
+  supporterSince,
+}: {
+  t: Testimonial;
+  tone?: string;
+  /** "Supporter since {year}" (Homepage sections → Supporters). */
+  supporterSince: string;
+}) {
   return (
     <figure className="rounded-2xl bg-paper-2 p-6 ring-1 ring-line sm:p-7">
       <figcaption className="flex items-center gap-3.5">
@@ -21,7 +31,7 @@ export function TestimonialCard({ t, tone }: { t: Testimonial; tone?: string }) 
       <Quote aria-hidden className="mt-5 size-6 text-crimson" strokeWidth={1.5} />
       <blockquote className="mt-2 leading-relaxed text-ink-soft">{t.quote}</blockquote>
       {t.supporterSince ? (
-        <p className="mt-4 text-sm font-semibold text-crimson">Supporter since {t.supporterSince}</p>
+        <p className="mt-4 text-sm font-semibold text-crimson">{fill(supporterSince, { year: String(t.supporterSince) })}</p>
       ) : null}
     </figure>
   );
