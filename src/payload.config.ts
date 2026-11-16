@@ -8,6 +8,7 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 
 import { Causes } from "./payload/collections/Causes";
+import { Enquiries } from "./payload/collections/Enquiries";
 import { Events } from "./payload/collections/Events";
 import { DonationTiers, Faqs, Supporters, Testimonials } from "./payload/collections/Homepage";
 import { Media } from "./payload/collections/Media";
@@ -55,7 +56,7 @@ export default buildConfig({
     },
     dateFormat: "d MMM yyyy",
   },
-  collections: [Events, Causes, Media, DonationTiers, Testimonials, Supporters, Faqs, Users],
+  collections: [Events, Causes, Media, DonationTiers, Testimonials, Supporters, Faqs, Enquiries, Users],
   globals: [SiteSettings, FundraisingAppeal, LiveUpdates],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET ?? "",

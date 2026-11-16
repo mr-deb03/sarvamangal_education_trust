@@ -357,11 +357,34 @@ html[data-donate-bar="shown"] .whatsapp-fab {
   contain-intrinsic-size: auto 1000px;
 }
 
+/* The page behind a full-screen viewer (camp photos) stays still. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
 /* A camp's written-up story (HTML from the CMS rich-text editor). */
 .prose-camp {
   color: var(--color-ink-soft);
   font-size: 1.0625rem;
   line-height: 1.75;
+}
+
+/* On a camp page, the write-up's opening paragraph reads as its lead. */
+.prose-camp.prose-lead > p:first-child {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+  .prose-camp.prose-lead > p:first-child {
+    font-size: 1.45rem;
+  }
+}
+
+.prose-camp li + li {
+  margin-top: 0.35em;
 }
 
 .prose-camp > * + * {

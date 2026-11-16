@@ -72,7 +72,7 @@ export function DonationPicker({ tiers, donateUrl }: { tiers: DonationTier[]; do
       <p className="mt-4 flex items-start gap-2 text-sm leading-snug text-ink-muted">
         <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-crimson" />
         <span>
-          Eligible for 80G tax deduction. You’ll finish on our secure donation page and get a receipt by email.
+          Eligible for 80G tax deduction. Open to Indian citizens living in India only — we can’t accept donations from NRIs or from abroad. You’ll finish on our secure donation page and get a receipt by email.
         </span>
       </p>
     </div>

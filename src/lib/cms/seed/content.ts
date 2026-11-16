@@ -258,6 +258,12 @@ export const seedFaqs: Faq[] = [
       "Yes. Every donation made through our donation page gets a receipt with the trust’s registration and 80G details, sent to the email address you give us.",
   },
   {
+    id: "seed-faq-nri",
+    question: "Can NRIs or people outside India donate?",
+    answer:
+      "Not at the moment. We can only accept donations from Indian citizens living in India, so we can’t take payments from NRIs or from abroad. You can still help: volunteer at a camp, or share our work with family and friends in India.",
+  },
+  {
     id: "seed-faq-use",
     question: "How is my donation used?",
     answer:

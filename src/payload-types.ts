@@ -74,6 +74,7 @@ export interface Config {
     testimonials: Testimonial;
     supporters: Supporter;
     faqs: Faq;
+    enquiries: Enquiry;
     users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -89,6 +90,7 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     supporters: SupportersSelect<false> | SupportersSelect<true>;
     faqs: FaqsSelect<false> | FaqsSelect<true>;
+    enquiries: EnquiriesSelect<false> | EnquiriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -388,6 +390,32 @@ export interface Faq {
   createdAt: string;
 }
 /**
+ * Volunteer sign-ups, CSR enquiries and messages from the website. Mark each one as you follow up.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiries".
+ */
+export interface Enquiry {
+  id: number;
+  kind: 'volunteer' | 'csr' | 'contact';
+  status: 'new' | 'contacted' | 'closed';
+  name: string;
+  phone?: string | null;
+  email?: string | null;
+  company?: string | null;
+  address?: string | null;
+  pincode?: string | null;
+  dateOfBirth?: string | null;
+  reference?: string | null;
+  occupation?: ('student' | 'job' | 'business') | null;
+  education?: string | null;
+  educationStatus?: ('pursuing' | 'completed') | null;
+  specialisation?: string | null;
+  message?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Who can sign in. Editors run camps, photos and the homepage; admins also manage settings and the team.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -468,6 +496,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'faqs';
         value: number | Faq;
+      } | null)
+    | ({
+        relationTo: 'enquiries';
+        value: number | Enquiry;
       } | null)
     | ({
         relationTo: 'users';
@@ -653,6 +685,29 @@ export interface FaqsSelect<T extends boolean = true> {
   question?: T;
   answer?: T;
   order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "enquiries_select".
+ */
+export interface EnquiriesSelect<T extends boolean = true> {
+  kind?: T;
+  status?: T;
+  name?: T;
+  phone?: T;
+  email?: T;
+  company?: T;
+  address?: T;
+  pincode?: T;
+  dateOfBirth?: T;
+  reference?: T;
+  occupation?: T;
+  education?: T;
+  educationStatus?: T;
+  specialisation?: T;
+  message?: T;
   updatedAt?: T;
   createdAt?: T;
 }

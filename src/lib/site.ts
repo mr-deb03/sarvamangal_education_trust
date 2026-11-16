@@ -19,7 +19,6 @@ export const ROUTES = {
   cause: (slug: string) => `/causes/${slug}`,
   events: "/events",
   event: (slug: string) => `/events/${slug}`,
-  blog: "/blog",
   volunteer: "/volunteer",
   csr: "/csr",
   contact: "/contact",
@@ -31,6 +30,6 @@ export const NAV_LINKS = [
   { label: "About", href: ROUTES.about },
   { label: "Causes", href: ROUTES.causes, hasCauses: true },
   { label: "Events", href: ROUTES.events },
-  { label: "Blog", href: ROUTES.blog },
   { label: "Volunteer", href: ROUTES.volunteer },
+  { label: "CSR", href: ROUTES.csr },
 ] as const;

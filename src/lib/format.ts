@@ -1,4 +1,4 @@
-import type { CampEvent } from "@/lib/cms/types";
+import type { CampEvent, SiteSettings } from "@/lib/cms/types";
 
 /**
  * Event dates are calendar dates (`YYYY-MM-DD`) in India. Parse them as UTC
@@ -44,4 +44,16 @@ export function formatINR(amount: number) {
     currency: "INR",
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+/** The trust's postal address on one line: "Shop No. 1, …, Bhandup West, Mumbai, Maharashtra 400078". */
+export function formatAddress(c: SiteSettings["contact"]) {
+  return [...c.addressLines, c.locality, c.city, [c.state, c.postalCode].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** A Google Maps search for the trust's office. */
+export function officeMapHref(c: SiteSettings["contact"]) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatAddress(c))}`;
 }

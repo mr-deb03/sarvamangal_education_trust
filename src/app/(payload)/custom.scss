@@ -258,6 +258,36 @@
     line-height: 1.45;
   }
 
+  // New enquiries from the website's forms (only when there are some)
+  &__inbox {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.15rem;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--sm-crimson) 35%, transparent);
+    background: color-mix(in srgb, var(--sm-crimson) 6%, var(--theme-elevation-0));
+    color: var(--theme-text);
+    text-decoration: none;
+
+    > span:nth-child(2) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .sm-dash__icon {
+      flex-shrink: 0;
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      border-color: var(--sm-crimson);
+    }
+  }
+
   // At a glance
   &__glance {
     display: grid;

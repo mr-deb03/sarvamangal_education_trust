@@ -12,11 +12,27 @@ import { cn } from "@/lib/utils";
  * Donate button is on screen — anything marked `data-donate-zone` (the hero,
  * the Give section, the closing ask) — so there is never a second Donate
  * button stacked on top of the first. Pages without zones show it once the
- * visitor has scrolled past the first screen.
+ * visitor has scrolled past the first screen. It also steps aside while
+ * someone is typing in a form, where the open keyboard leaves little room.
  */
 export function MobileDonateBar({ donateUrl }: { donateUrl: string }) {
-  const [visible, setVisible] = useState(false);
+  const [wanted, setVisible] = useState(false);
+  const [typing, setTyping] = useState(false);
   const pathname = usePathname();
+  const visible = wanted && !typing;
+
+  useEffect(() => {
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement && el.matches("input:not([type=radio],[type=checkbox],[type=hidden]), textarea, select");
+    const onFocusIn = (e: FocusEvent) => setTyping(isField(e.target));
+    const onFocusOut = (e: FocusEvent) => setTyping(isField(e.relatedTarget));
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
 
   useEffect(() => {
     const zones = [...document.querySelectorAll<HTMLElement>("[data-donate-zone]")];

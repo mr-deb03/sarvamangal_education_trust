@@ -30,6 +30,14 @@ const nextConfig: NextConfig = {
     return [
       ...seedEvents.map((e) => ({ source: `/${e.slug}`, destination: `/events/${e.slug}`, permanent: true })),
       { source: "/recent-events-sarvamangal-education-trust", destination: "/events", permanent: true },
+      // The old site's blog listed the same camp posts.
+      { source: "/blogs", destination: "/events", permanent: true },
+      { source: "/contact-us", destination: "/contact", permanent: true },
+      { source: "/csr-with-us", destination: "/csr", permanent: true },
+      { source: "/volunteer-form", destination: "/volunteer", permanent: true },
+      { source: "/terms-and-conditions", destination: "/terms", permanent: true },
+      // No refund page any more (owner's call): the refund terms live under Donations in /terms.
+      { source: "/refund-and-cancellation-policy", destination: "/terms#donations-and-payments", permanent: true },
       ...["health", "education", "society", "spirituality"].map((slug) => ({
         source: `/${slug}`,
         destination: `/causes/${slug}`,

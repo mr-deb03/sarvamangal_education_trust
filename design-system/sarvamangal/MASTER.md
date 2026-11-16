@@ -153,8 +153,27 @@ Scale: hero 2.4rem → 3.7rem; section H2 2.15rem → 3rem; body 17–20px, line
   - Hero card order on phones: headline → amounts + Donate → trust row → intro, so Donate
     is on the first screen (checked at 360, 375 and 412px wide).
   - Sticky Donate bar: hidden while any `data-donate-zone` (hero, Give, closing ask)
-    is on screen, so two Donate buttons never stack.
+    is on screen, so two Donate buttons never stack — and while a form field has focus
+    (the keyboard already takes half the screen).
 - Radius: cards 16–28px, buttons full pill.
+- **Inner pages** (Nov 2026): `PageHeader` (ink band; `tone="light"` paper band for
+  policies; optional `image` — a 3:2 photo with caption beside the title on desktop,
+  under the intro on phones; /about uses the free health check-up camp, Bhandup West, Jun 2025) →
+  content → a closing section. One signature each: /about the large
+  Devanagari सर्वमंगल; /csr the ink "Ways to partner" grid; /contact the ink visiting
+  card; /volunteer the form beside "What volunteers do"; policies a numbered contents
+  list (sticky column on desktop, fold-out on phones, `LegalDocument`).
+- **Camp page** (`/events/[slug]`): banner of the camp's own cover photo (ink gradients
+  top and foot) with cause, title, date · place · people served and "See all N photos";
+  then the write-up (first paragraph as a Fraunces lead) beside a sticky aside — the
+  Camp details card (when, where + directions, cause, people served, run with, share)
+  over the ink Donate box. Signature: the gallery — uncropped photos in a masonry
+  contact sheet (2 columns on phones, 3 from sm; first 8, then "Show all"), opening a
+  full-screen ink viewer (arrows, swipe, Esc; the page behind doesn't scroll).
+- **Forms** (`EnquiryForms.tsx`): white card, labels above fields; required fields get
+  a crimson *, optional ones say "(optional)"; errors under the field in crimson, with
+  focus moved to the first one; radio choices as 44px pills. Always offer WhatsApp beside
+  the submit button.
 
 ## Motion
 

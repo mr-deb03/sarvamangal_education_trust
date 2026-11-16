@@ -122,7 +122,11 @@ async function causes(): Promise<Cause[]> {
 /** The write-up as HTML, or nothing when the editor left it empty. */
 function richTextToHtml(body: PEvent["body"]): string | undefined {
   if (!body?.root?.children?.length) return undefined;
-  const html = convertLexicalToHTML({ data: body as Parameters<typeof convertLexicalToHTML>[0]["data"] }).trim();
+  // No wrapper <div>: the page styles the paragraphs and headings directly (.prose-camp > p).
+  const html = convertLexicalToHTML({
+    data: body as Parameters<typeof convertLexicalToHTML>[0]["data"],
+    disableContainer: true,
+  }).trim();
   // An editor that was opened and cleared leaves an empty paragraph behind.
   return html.replace(/<p>\s*(<br\s*\/?>)?\s*<\/p>/g, "").trim() ? html : undefined;
 }

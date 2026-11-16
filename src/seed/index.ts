@@ -25,8 +25,9 @@ import {
   seedSupporters,
   seedTestimonials,
 } from "../lib/cms/seed/content";
+import { eventStories, type StoryBlock } from "../lib/cms/seed/event-stories";
 import { seedEvents } from "../lib/cms/seed/events";
-import type { ImageRef } from "../lib/cms/types";
+import type { CampEvent, ImageRef } from "../lib/cms/types";
 
 const force = process.argv.slice(2).includes("force");
 /** The site's public/ folder, where the seed's local photos and logos live. */
@@ -42,7 +43,67 @@ const MIME: Record<string, string> = {
 /** Calendar date → noon UTC, which is the same day everywhere in India. */
 const noon = (date: string) => `${date}T12:00:00.000Z`;
 
-const stats = { created: 0, updated: 0, skipped: 0, failed: 0 };
+const stats = { created: 0, updated: 0, skipped: 0, failed: 0, filled: 0 };
+
+/** The old page's write-up as Lexical rich text (the Events "Full write-up" field). */
+function storyToLexical(blocks: StoryBlock[]) {
+  const node = { format: "", indent: 0, version: 1, direction: "ltr" as const };
+  const text = (t: string) => ({ type: "text", text: t, format: 0, detail: 0, mode: "normal", style: "", version: 1 });
+  return {
+    root: {
+      type: "root",
+      ...node,
+      children: blocks.map((b) => {
+        if (b.type === "p") return { type: "paragraph", ...node, textFormat: 0, textStyle: "", children: [text(b.text)] };
+        if (b.type === "h2") return { type: "heading", tag: "h2", ...node, children: [text(b.text)] };
+        return {
+          type: "list",
+          listType: b.type === "ol" ? "number" : "bullet",
+          tag: b.type,
+          start: 1,
+          ...node,
+          children: b.items.map((item, i) => ({ type: "listitem", value: i + 1, ...node, children: [text(item)] })),
+        };
+      }),
+    },
+  };
+}
+
+/**
+ * Gives a camp the old page's write-up and gallery — only where those are still
+ * empty, so nothing the team has written or uploaded in /admin is replaced.
+ */
+async function fillStory(payload: Payload, id: number, e: CampEvent) {
+  const story = eventStories[e.slug];
+  if (!story) return;
+  try {
+    const doc = await payload.findByID({ collection: "events", id, depth: 0 });
+    const data: Record<string, unknown> = {};
+    if (!doc.body && story.blocks.length > 0) data.body = storyToLexical(story.blocks);
+    if ((doc.gallery ?? []).length === 0 && (e.gallery ?? []).length > 0) {
+      const ids: number[] = [];
+      for (const [i, photo] of (e.gallery ?? []).entries()) {
+        const mediaId = await uploadImage(payload, photo, `event-${e.slug}-${String(i + 1).padStart(2, "0")}`);
+        if (mediaId) ids.push(mediaId);
+      }
+      if (ids.length > 0) data.gallery = ids;
+    }
+    if (Object.keys(data).length === 0) return;
+    await payload.update({
+      collection: "events",
+      id,
+      data: { ...data, _status: doc._status ?? "published" } as never,
+      context,
+      depth: 0,
+    });
+    stats.filled++;
+    const added = [data.body ? "write-up" : null, data.gallery ? `${(data.gallery as number[]).length} photos` : null];
+    console.log(`  + ${e.title} (${e.startDate}): ${added.filter(Boolean).join(", ")}`);
+  } catch (err) {
+    stats.failed++;
+    console.warn(`  ! write-up/photos for “${e.title}”: ${(err as Error).message}`);
+  }
+}
 
 async function uploadImage(payload: Payload, image: ImageRef, name: string): Promise<number | null> {
   const ext = (path.extname(new URL(image.src, "http://local").pathname) || ".jpg").toLowerCase();
@@ -121,7 +182,7 @@ async function seed(payload: Payload) {
     if (id) causeIds[c.slug] = id;
   }
 
-  console.log(`Events (${seedEvents.length}, downloading photos from the old site)…`);
+  console.log(`Events (${seedEvents.length}, downloading photos and galleries from the old site)…`);
   for (const e of seedEvents) {
     const cover = e.coverImage ? await uploadImage(payload, e.coverImage, `event-${e.slug}`) : null;
     if (!cover) {
@@ -129,7 +190,7 @@ async function seed(payload: Payload) {
       console.warn(`  ! skipped “${e.title}” (${e.startDate}): no cover photo`);
       continue;
     }
-    await upsert(
+    const id = await upsert(
       payload,
       "events",
       { slug: { equals: e.slug } },
@@ -154,6 +215,7 @@ async function seed(payload: Payload) {
       },
       e.title,
     );
+    if (id) await fillStory(payload, id, e);
   }
 
   console.log("Testimonials, supporters, donation amounts, FAQs…");
@@ -248,7 +310,8 @@ const payload = await getPayload({ config });
 try {
   await seed(payload);
   console.log(
-    `\nDone: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} already there, ${stats.failed} failed.` +
+    `\nDone: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} already there, ` +
+      `${stats.filled} camps given their write-up/photos, ${stats.failed} failed.` +
       (force ? "" : "\nExisting records were left alone; run `npm run seed:force` to overwrite them."),
   );
 } finally {

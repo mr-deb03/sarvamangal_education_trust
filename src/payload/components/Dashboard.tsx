@@ -5,6 +5,7 @@ import {
   FilePenLine,
   HeartHandshake,
   Images,
+  Inbox,
   IndianRupee,
   Layers,
   Radio,
@@ -50,7 +51,14 @@ export async function TaskDashboard({ payload, user }: Props) {
   const startOfToday = new Date(`${today}T00:00:00+05:30`).toISOString();
   const published = { _status: { equals: "published" } } as const;
 
-  const [next, latest, drafts, live, appeal, photos] = await Promise.all([
+  const newEnquiry = (kind: "volunteer" | "csr" | "contact") =>
+    payload.count({
+      collection: "enquiries",
+      where: { and: [{ status: { equals: "new" } }, { kind: { equals: kind } }] },
+      overrideAccess: true,
+    });
+
+  const [next, latest, drafts, live, appeal, photos, volunteers, csr, messages] = await Promise.all([
     payload.find({
       collection: "events",
       where: { and: [published, { startDate: { greater_than_equal: startOfToday } }] },
@@ -76,6 +84,9 @@ export async function TaskDashboard({ payload, user }: Props) {
     payload.findGlobal({ slug: "live-updates", depth: 0 }),
     payload.findGlobal({ slug: "fundraising-appeal", depth: 0 }),
     payload.count({ collection: "media" }),
+    newEnquiry("volunteer"),
+    newEnquiry("csr"),
+    newEnquiry("contact"),
   ]);
 
   const nextCamp = next.docs[0] as EventDoc | undefined;
@@ -85,6 +96,12 @@ export async function TaskDashboard({ payload, user }: Props) {
     .join(" · ");
   const firstName = user?.name?.trim().split(/\s+/)[0];
   const showAdmin = isAdmin(user);
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const waiting = [
+    volunteers.totalDocs ? plural(volunteers.totalDocs, "volunteer", "volunteers") : null,
+    csr.totalDocs ? plural(csr.totalDocs, "CSR enquiry", "CSR enquiries") : null,
+    messages.totalDocs ? plural(messages.totalDocs, "message", "messages") : null,
+  ].filter(Boolean);
 
   return (
     <section className="sm-dash" aria-labelledby="sm-dash-title">
@@ -101,6 +118,19 @@ export async function TaskDashboard({ payload, user }: Props) {
           <ArrowUpRight aria-hidden size={16} />
         </a>
       </header>
+
+      {waiting.length > 0 ? (
+        <Link className="sm-dash__inbox" href={`${admin}/collections/enquiries?where[status][equals]=new`}>
+          <span className="sm-dash__icon">
+            <Inbox aria-hidden size={20} />
+          </span>
+          <span>
+            <span className="sm-dash__action-title">New from the website: {waiting.join(", ")}</span>
+            <span className="sm-dash__action-text">Open the inbox, call them back, then mark each one “Contacted”.</span>
+          </span>
+          <ArrowUpRight aria-hidden size={18} />
+        </Link>
+      ) : null}
 
       <h2 className="sm-dash__h2">Quick actions</h2>
       <ul className="sm-dash__actions">

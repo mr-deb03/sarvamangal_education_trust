@@ -20,7 +20,6 @@ async function CurrentYear() {
 const explore = [
   { label: "About us", href: ROUTES.about },
   { label: "Events", href: ROUTES.events },
-  { label: "Blog", href: ROUTES.blog },
   { label: "Volunteer", href: ROUTES.volunteer },
   { label: "CSR partnerships", href: ROUTES.csr },
   { label: "Contact", href: ROUTES.contact },
@@ -149,8 +148,8 @@ export function Footer({
           <p className="flex items-start gap-2.5 text-sm">
             <ShieldCheck aria-hidden className="mt-px size-5 shrink-0 text-marigold" />
             <span>
-              <span className="font-semibold text-white">Secure online donations.</span> Payments are processed by
-              Easebuzz.
+              <span className="font-semibold text-white">Secure online donations</span> from Indian citizens living
+              in India, processed by Easebuzz. We can’t accept donations from NRIs or from abroad.
             </span>
           </p>
           <ul aria-label="Ways to pay" className="flex flex-wrap items-center gap-2">

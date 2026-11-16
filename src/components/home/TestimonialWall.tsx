@@ -50,7 +50,7 @@ export function TestimonialWall({ items }: { items: { t: Testimonial; tone?: str
   return (
     <div
       aria-hidden
-      className="voices-wall mt-12 hidden h-[40rem] gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_9%,black_91%,transparent)] motion-reduce:hidden sm:grid sm:grid-cols-2 lg:mt-14 lg:h-[44rem] lg:grid-cols-3 lg:gap-5"
+      className="voices-wall mt-12 hidden h-[40rem] gap-4 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_9%,black_91%,transparent)] motion-safe:sm:grid sm:grid-cols-2 lg:mt-14 lg:h-[44rem] lg:grid-cols-3 lg:gap-5"
     >
       {show
         ? COLUMNS.map((column, c) => {

@@ -58,6 +58,8 @@ export function HeroGive({ tiers, donateUrl }: { tiers: DonationTier[]; donateUr
         <HeartHandshake aria-hidden />
         {selected?.amount ? `Donate ${formatINR(selected.amount)}` : "Donate now"}
       </a>
+      {/* Owner's rule (Nov 2026): no NRI or foreign donations. */}
+      <p className="mt-2 text-center text-[0.82rem] text-ink-muted">For Indian citizens living in India only.</p>
     </div>
   );
 }

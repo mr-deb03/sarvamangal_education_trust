@@ -25,11 +25,25 @@ touching any UI.
     prebuilt from the CMS; new camps render on first visit), `/causes`, `/causes/[slug]`,
     old-WordPress-URL redirects (`redirects()` in `next.config.ts`, from `seed/events.ts`
     — the old site's 35 posts — plus the old events list and cause URLs), sitemap.
-  - Still to build (need the trust's content): `/about`, `/volunteer` (form), `/csr`,
-    `/contact`, `/blog` + posts, `/privacy-policy`, `/terms` (no refund policy page —
-    owner's call). Their links 404 until built (`app/not-found.tsx` handles that).
-  - Camp write-ups are thin (0 of 35 have a body, 3 a summary): migrating the old
-    WordPress post text and photos into Payload is the next content job.
+  - Built Nov 2026 from the old site's text: `/about`, `/volunteer`, `/csr`, `/contact`
+    (each with its form → admin **Inbox**), `/privacy-policy`, `/terms` (no refund
+    policy page — owner's call; refund terms sit under Donations in /terms). Old URLs
+    (`/contact-us`, `/csr-with-us`, `/volunteer-form`, `/terms-and-conditions`,
+    `/refund-and-cancellation-policy`, `/blogs`) redirect in `next.config.ts`.
+  - Not built: `/blog` — no posts exist, so it's out of the menu and footer. Add it
+    back to `NAV_LINKS` / Footer `explore` / `ROUTES` / sitemap when posts are written.
+  - Camp pages carry the old WordPress pages' write-ups and galleries (Nov 2026):
+    `seed/event-stories.ts` (generated from the old pages — text unedited apart from
+    spacing and sentence-case section headings; photos from each page's gallery widget
+    only, 395 in all, not its decorative images, some of which were stock/news photos).
+    `npm run seed` fills an existing camp's write-up and gallery **only while they're
+    empty**, uploading the photos into Media — it never replaces what the team wrote.
+  - **Before launch:** seed photos (covers and galleries) point at
+    `sarvamangaleducationtrust.org/wp-content/uploads/…`. Once the domain serves this
+    app, those URLs die — production must run on Payload (photos in Media + Blob
+    storage), not on seed content.
+  - The old site also has 6 real blog articles (WordPress `posts`, e.g. "Career guidance
+    for students") — the source for `/blog` when it's built.
 
 ## Commands
 
@@ -144,7 +158,15 @@ src/lib/cms/
     gives existing rows `_status = 'draft'` and `role = 'editor'` — every camp would vanish
     and nobody would be an admin. Add to that migration:
     `UPDATE events SET _status = 'published';` and `UPDATE users SET role = 'admin';`
-    (done by hand for the local DB, Nov 2026).
+    (done by hand for the local DB, Nov 2026). The same migration creates the
+    `enquiries` table (pushed to the local DB in dev).
+- **Forms → Inbox** (collection `enquiries`, admin → Inbox): the volunteer, CSR and
+  contact forms (`components/forms/EnquiryForms.tsx`, `useActionState`) post to the
+  server action `submitEnquiry` in `src/lib/enquiries.ts`, which validates, drops bots
+  (hidden `website` field) and saves with `overrideAccess` — the public API can't read
+  or write enquiries. With no `DATABASE_URI` (Vercel today) the form says it couldn't
+  send and offers WhatsApp instead. The dashboard shows a "New from the website" banner
+  while any are `status = new`. Fields mirror the old WordPress forms.
 - **Floating WhatsApp chat** (`components/layout/WhatsAppChat.tsx`, every public page):
   bottom-right button (above the phone Donate bar) that opens a chat with Site settings →
   WhatsApp number, where the chatbot answers, with a greeting typed in. A welcome bubble
@@ -197,6 +219,9 @@ src/lib/cms/
   `.accent-underline` (an underline, not a highlight — owner's call).
 - Buttons are links: `ButtonLink` / `buttonClasses()`. Touch targets ≥ 44px.
 - Every motion respects `prefers-reduced-motion` (`motion-safe:` or the CSS guards).
+- **Donations only from Indian citizens living in India** — no NRI or foreign payments
+  (owner's rule, Nov 2026). Say so wherever someone is about to donate (hero give box,
+  Give section, camp page, footer, FAQ, /terms).
 - Copy: plain, specific, sentence case, Indian English ("programme", "neighbourhood").
   **Never invent numbers, costs or claims.** If a fact isn't in the CMS/seed,
   ask the user.
@@ -216,3 +241,9 @@ src/lib/cms/
   New ones: admin → Testimonials → Photo; without one, the card shows initials.
 - 80G no. ABGTS0900EF20241 (13 Sep 2024), reg. no. E-0038125 (GBR) and PAN
   ABGTS0900E were taken from the donation-receipt template.
+- Privacy policy: the old text gives +91 97022 46277 for privacy requests and the main
+  number for grievances — confirm both. It now also lists what the volunteer and CSR
+  forms collect; /privacy-policy and /terms say "Last updated: November 2026" because of
+  that and the NRI rule — get the trust's OK on the wording.
+- /about has no founders or trustees (none on the old site) — add them if the trust wants.
+- /csr does not claim CSR-1 or 12A registration — add them to the page if the trust has them.

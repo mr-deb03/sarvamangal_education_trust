@@ -1,4 +1,5 @@
 import type { CampEvent, CauseRef } from "../types";
+import { eventStories, type StoryBlock } from "./event-stories";
 
 /**
  * Every event published on the old WordPress site (35, Jan 2016 – Jun 2026),
@@ -339,8 +340,31 @@ const rows: Row[] = [
   },
 ];
 
-export const seedEvents: CampEvent[] = rows.map(({ image, imageAlt, ...event }) => ({
-  ...event,
-  id: `seed-${event.slug}`,
-  coverImage: { src: image, alt: imageAlt ?? `${event.title} — Sarvamangal Education Trust` },
-}));
+const escapeHtml = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/** The old page's write-up as HTML, the same shape the CMS's rich text renders to. */
+function storyHtml(blocks: StoryBlock[]) {
+  return blocks
+    .map((b) =>
+      b.type === "p" || b.type === "h2"
+        ? `<${b.type}>${escapeHtml(b.text)}</${b.type}>`
+        : `<${b.type}>${b.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</${b.type}>`,
+    )
+    .join("");
+}
+
+// No "@/" imports here: next.config.ts loads this file for the old-URL redirects.
+export const seedEvents: CampEvent[] = rows.map(({ image, imageAlt, ...event }) => {
+  const story = eventStories[event.slug];
+  const where = event.locality ?? event.city;
+  return {
+    ...event,
+    id: `seed-${event.slug}`,
+    coverImage: { src: image, alt: imageAlt ?? `${event.title} — Sarvamangal Education Trust` },
+    bodyHtml: story && story.blocks.length > 0 ? storyHtml(story.blocks) : undefined,
+    gallery: story?.photos.map((photo, i, all) => ({
+      ...photo,
+      alt: `${event.title}${where ? ` in ${where}` : ""} — photo ${i + 1} of ${all.length}`,
+    })),
+  };
+});
