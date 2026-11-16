@@ -10,6 +10,11 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  experimental: {
+    // The whole Tailwind stylesheet is ~15 KB: inlined, it arrives with the HTML instead of
+    // as two render-blocking requests (big win for first-visit mobile LCP). Production only.
+    inlineCss: true,
+  },
   partialPrefetching: true,
   poweredByHeader: false,
   turbopack: {

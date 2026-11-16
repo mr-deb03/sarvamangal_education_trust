@@ -4,6 +4,7 @@ import { adminsOnly, anyone, hiddenFromEditors, signedIn } from "../access";
 
 import { orderField } from "../fields";
 import { revalidateCollection } from "../hooks/revalidate";
+import { httpsUrl } from "../validators";
 
 /** Smaller collections that only feed the homepage. */
 
@@ -78,7 +79,13 @@ export const Supporters: CollectionConfig = {
   hooks: revalidateCollection(),
   fields: [
     { name: "name", type: "text", required: true },
-    { name: "url", label: "Website", type: "text", admin: { description: "Full address, e.g. https://sith.co.in" } },
+    {
+      name: "url",
+      label: "Website",
+      type: "text",
+      admin: { description: "Full address, e.g. https://sith.co.in" },
+      validate: httpsUrl,
+    },
     {
       name: "logo",
       type: "upload",

@@ -2,7 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
-import { todayInIndia } from "@/lib/format";
+import { indiaDate } from "@/lib/format";
 
 import { isPayloadConfigured, payloadSource } from "./payload/source";
 import { seedSource } from "./seed/source";
@@ -21,8 +21,6 @@ import type { AppealView, CampEvent, EventTimeline, HomePageData } from "./types
 export { CMS_TAGS };
 
 const source = isPayloadConfigured ? payloadSource : seedSource;
-
-export const contentSourceName = isPayloadConfigured ? "payload" : "seed";
 
 export async function getSiteSettings() {
   "use cache";
@@ -57,8 +55,9 @@ export async function getEventTimeline(): Promise<EventTimeline> {
   cacheLife("days");
 
   const events = await getEvents();
-  const today = todayInIndia(new Date());
+  const today = indiaDate(new Date());
   const isUpcoming = (e: CampEvent) => (e.endDate ?? e.startDate) >= today;
+  const past = events.filter((e) => !isUpcoming(e));
 
   const countByCause: Record<string, number> = {};
   for (const e of events) {
@@ -67,19 +66,19 @@ export async function getEventTimeline(): Promise<EventTimeline> {
 
   return {
     upcoming: events.filter(isUpcoming).reverse(),
-    past: events.filter((e) => !isUpcoming(e)),
+    past,
     total: events.length,
     countByCause,
+    firstYear: past.at(-1)?.startDate.slice(0, 4),
   };
 }
 
-/** One camp by its slug (published only), or null. */
+/** One camp by its slug (published only), with its write-up and gallery, or null. */
 export async function getEvent(slug: string) {
   "use cache";
   cacheTag(CMS_TAGS.all, CMS_TAGS.event);
   cacheLife("max");
-  const events = await getEvents();
-  return events.find((e) => e.slug === slug) ?? null;
+  return source.event(slug);
 }
 
 /** One cause by its slug, or null. */
@@ -132,7 +131,7 @@ export async function getAppeal(): Promise<AppealView | null> {
   const appeal = await source.appeal();
   if (!appeal) return null;
 
-  const today = todayInIndia(new Date());
+  const today = indiaDate(new Date());
   if (appeal.endDate && appeal.endDate < today) return null;
 
   const DAY = 86_400_000;
@@ -151,8 +150,16 @@ export async function getLiveUpdates() {
   return source.liveUpdates();
 }
 
+/** Every heading, button and label on the site (the "Website text" globals). */
+export async function getCopy() {
+  "use cache";
+  cacheTag(CMS_TAGS.all, CMS_TAGS.copy);
+  cacheLife("max");
+  return source.copy();
+}
+
 export async function getHomePageData(): Promise<HomePageData> {
-  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates] =
+  const [settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates, copy] =
     await Promise.all([
       getSiteSettings(),
       getCauses(),
@@ -163,8 +170,9 @@ export async function getHomePageData(): Promise<HomePageData> {
       getFaqs(),
       getAppeal(),
       getLiveUpdates(),
+      getCopy(),
     ]);
-  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates };
+  return { settings, causes, timeline, testimonials, supporters, donationTiers, faqs, appeal, liveUpdates, copy };
 }
 
 export type * from "./types";

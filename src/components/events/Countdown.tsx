@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { indiaDate } from "@/lib/format";
+import { fill, indiaDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const DAY = 86_400_000;
@@ -16,13 +16,35 @@ const nothingOnServer = () => null;
  * here (the page is static and cached), so there is no hydration mismatch and
  * the label is never stale.
  */
-export function Countdown({ start, end, className }: { start: string; end?: string; className?: string }) {
+export type CountdownText = { days: string; tomorrow: string; today: string; onNow: string };
+
+export function Countdown({
+  start,
+  end,
+  text,
+  className,
+}: {
+  start: string;
+  end?: string;
+  /** `days` holds {n}: "In {n} days". */
+  text: CountdownText;
+  className?: string;
+}) {
   const today = useSyncExternalStore(noSubscription, todayOnClient, nothingOnServer);
   if (!today) return null;
 
   const days = Math.round((Date.parse(start) - Date.parse(today)) / DAY);
   const onNow = days < 0 && (end ?? start) >= today;
-  const label = days > 1 ? `In ${days} days` : days === 1 ? "Tomorrow" : days === 0 ? "Today" : onNow ? "On now" : null;
+  const label =
+    days > 1
+      ? fill(text.days, { n: days })
+      : days === 1
+        ? text.tomorrow
+        : days === 0
+          ? text.today
+          : onNow
+            ? text.onNow
+            : null;
   if (!label) return null;
   const live = days === 0 || onNow;
 

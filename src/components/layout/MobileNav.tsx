@@ -3,128 +3,129 @@
 import { HeartHandshake, Menu, Phone, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef } from "react";
 
 import { buttonClasses } from "@/components/ui/ButtonLink";
-import type { Cause } from "@/lib/cms/types";
-import { NAV_LINKS, ROUTES } from "@/lib/site";
+import type { Cause, CopyImage, HeaderLink, NavLink } from "@/lib/cms/types";
+import { ROUTES } from "@/lib/site";
 import { telHref } from "@/lib/utils";
 
 type Props = {
   causes: Pick<Cause, "slug" | "title">[];
+  links: (HeaderLink | NavLink)[];
   donateUrl: string;
   phone: string;
+  logo: CopyImage;
+  text: { donate: string; call: string; open: string; close: string; menu: string; mainNav: string };
 };
 
-export function MobileNav({ causes, donateUrl, phone }: Props) {
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+/**
+ * The phone menu, as a native modal <dialog>: the browser keeps focus inside,
+ * Escape closes it, the page behind is inert, and it sits in the top layer (so
+ * the header's backdrop-filter can't trap it). Closes on any link or Back.
+ */
+export function MobileNav({ causes, links, donateUrl, phone, logo, text }: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const open = () => {
+    dialogRef.current?.showModal();
+    document.documentElement.style.overflow = "hidden";
+  };
+  const close = () => dialogRef.current?.close();
 
   useEffect(() => {
-    if (!open) return;
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const trigger = triggerRef.current;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const unlock = () => (document.documentElement.style.overflow = "");
+    const onBack = () => dialog.open && dialog.close();
+    dialog.addEventListener("close", unlock);
+    window.addEventListener("popstate", onBack);
     return () => {
-      document.body.style.overflow = overflow;
-      window.removeEventListener("keydown", onKey);
-      trigger?.focus();
+      dialog.removeEventListener("close", unlock);
+      window.removeEventListener("popstate", onBack);
+      unlock();
     };
-  }, [open]);
+  }, []);
 
-  const close = () => setOpen(false);
+  const itemClass = "flex min-h-12 items-center font-display text-[1.65rem] text-ink";
 
   return (
     <>
       <button
-        ref={triggerRef}
         type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
+        onClick={open}
+        aria-haspopup="dialog"
         aria-controls="mobile-menu"
         className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full text-ink ring-1 ring-line lg:hidden"
       >
         <Menu aria-hidden className="size-5" />
-        <span className="sr-only">Open menu</span>
+        <span className="sr-only">{text.open}</span>
       </button>
 
-      {/* Portalled to <body>: the header's backdrop-filter would otherwise
-          become the containing block and trap this fixed panel inside it. */}
-      {open ? createPortal(
-        <div
-          id="mobile-menu"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu"
-          className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-white lg:hidden"
-        >
-          <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-4 sm:px-6">
-            <Image src="/brand/sarvamangal-logo.png" alt="" width={1600} height={500} className="h-10 w-auto" />
-            <button
-              type="button"
-              autoFocus
-              onClick={close}
-              className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full text-ink ring-1 ring-line"
-            >
-              <X aria-hidden className="size-5" />
-              <span className="sr-only">Close menu</span>
-            </button>
-          </div>
+      <dialog
+        ref={dialogRef}
+        id="mobile-menu"
+        aria-label={text.menu}
+        className="m-0 h-dvh max-h-none w-screen max-w-none bg-white p-0 backdrop:bg-ink/40 open:flex open:flex-col lg:hidden"
+      >
+        <div className="flex h-16 shrink-0 items-center justify-between border-b border-line px-4 sm:px-6">
+          <Image
+            src={logo.src}
+            alt=""
+            width={logo.width ?? 1600}
+            height={logo.height ?? 500}
+            sizes="160px"
+            className="h-10 w-auto"
+          />
+          <button
+            type="button"
+            autoFocus
+            onClick={close}
+            className="inline-flex size-11 cursor-pointer items-center justify-center rounded-full text-ink ring-1 ring-line"
+          >
+            <X aria-hidden className="size-5" />
+            <span className="sr-only">{text.close}</span>
+          </button>
+        </div>
 
-          <nav aria-label="Main" className="flex-1 px-4 py-6 sm:px-6">
-            <ul className="space-y-1">
-              {NAV_LINKS.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={close}
-                    className="flex min-h-12 items-center font-display text-[1.65rem] text-ink"
-                  >
-                    {item.label}
-                  </Link>
-                  {"hasCauses" in item ? (
-                    <ul className="mb-3 grid grid-cols-2 gap-2 pl-1">
-                      {causes.map((c) => (
-                        <li key={c.slug}>
-                          <Link
-                            href={ROUTES.cause(c.slug)}
-                            onClick={close}
-                            className="flex min-h-11 items-center rounded-xl bg-paper-2 px-4 text-ink-soft"
-                          >
-                            {c.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              ))}
-              <li>
-                <Link href={ROUTES.contact} onClick={close} className="flex min-h-12 items-center font-display text-[1.65rem] text-ink">
-                  Contact
+        <nav aria-label={text.mainNav} className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          <ul className="space-y-1">
+            {links.map((item, i) => (
+              <li key={`${item.href}-${i}`}>
+                <Link href={item.href} onClick={close} className={itemClass}>
+                  {item.label}
                 </Link>
+                {"showCauses" in item && item.showCauses ? (
+                  <ul className="mb-3 grid grid-cols-2 gap-2 pl-1">
+                    {causes.map((c) => (
+                      <li key={c.slug}>
+                        <Link
+                          href={ROUTES.cause(c.slug)}
+                          onClick={close}
+                          className="flex min-h-11 items-center rounded-xl bg-paper-2 px-4 text-ink-soft"
+                        >
+                          {c.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </li>
-            </ul>
-          </nav>
+            ))}
+          </ul>
+        </nav>
 
-          <div className="sticky bottom-0 space-y-3 border-t border-line bg-white px-4 py-4 sm:px-6">
-            <a href={donateUrl} className={buttonClasses("primary", "lg") + " w-full"}>
-              <HeartHandshake aria-hidden />
-              Donate now
-            </a>
-            <a href={telHref(phone)} className={buttonClasses("secondary", "md") + " w-full"}>
-              <Phone aria-hidden />
-              Call {phone}
-            </a>
-          </div>
-        </div>,
-        document.body,
-      ) : null}
+        <div className="space-y-3 border-t border-line bg-white px-4 py-4 sm:px-6">
+          <a href={donateUrl} className={`${buttonClasses("primary", "lg")} w-full`}>
+            <HeartHandshake aria-hidden />
+            {text.donate}
+          </a>
+          <a href={telHref(phone)} className={`${buttonClasses("secondary", "md")} w-full`}>
+            <Phone aria-hidden />
+            {text.call}
+          </a>
+        </div>
+      </dialog>
     </>
   );
 }

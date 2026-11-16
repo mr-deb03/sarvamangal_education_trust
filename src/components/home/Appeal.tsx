@@ -1,31 +1,42 @@
 import { CalendarClock, HeartHandshake, MessageCircle, Users } from "lucide-react";
 import Image from "next/image";
+import type { ReactNode } from "react";
 
-import { Reveal } from "@/components/motion/Reveal";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import type { AppealView } from "@/lib/cms/types";
-import { formatINR } from "@/lib/format";
+import { Fill } from "@/components/ui/Fill";
+import { Reveal } from "@/components/ui/Reveal";
+import { Rupees } from "@/components/ui/Rupees";
+import type { AppealView, SiteCopy } from "@/lib/cms/types";
+import { fill, formatINR, plural } from "@/lib/format";
 import { SITE_URL } from "@/lib/site";
 import { cn, donateHref, focalStyle } from "@/lib/utils";
-
-function daysLeftLabel(days: number) {
-  if (days <= 0) return "Last day today";
-  return days === 1 ? "1 day left" : `${days} days left`;
-}
 
 /**
  * The current appeal (Payload global "fundraising-appeal"). With a goal: a
  * progress bar. Without one: the running total ("1,500+ pouches distributed so
  * far"). Rendered only when the trust has switched an appeal on.
  */
-export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: string }) {
+export function Appeal({
+  appeal,
+  donateUrl,
+  siteName,
+  copy,
+}: {
+  appeal: AppealView;
+  donateUrl: string;
+  siteName: string;
+  copy: SiteCopy;
+}) {
+  const text = copy.home.appeal;
   const isMoney = appeal.measure === "money";
-  const format = (n: number) => (isMoney ? formatINR(n) : n.toLocaleString("en-IN"));
-  const soFar = `${format(appeal.soFar)}${appeal.atLeast ? "+" : ""}`;
-  const counted = isMoney ? "raised" : (appeal.itemLabel ?? "");
+  const plus = appeal.atLeast ? "+" : "";
+  /** On the page (₹ drawn in Mukta) and as plain text (aria, share). */
+  const amount = (n: number): ReactNode => (isMoney ? <Rupees amount={n} /> : n.toLocaleString("en-IN"));
+  const amountText = (n: number) => (isMoney ? formatINR(n) : n.toLocaleString("en-IN"));
+  const counted = isMoney ? text.raised : (appeal.itemLabel ?? "");
   const { goal, percent } = appeal;
   const reached = goal !== undefined && appeal.soFar >= goal;
-  const shareText = `${appeal.title} — Sarvamangal Education Trust. ${SITE_URL}/#appeal`;
+  const shareText = `${fill(copy.labels.messages.shareAppeal, { title: appeal.title, siteName })} ${SITE_URL}/#appeal`;
 
   return (
     <section id="appeal" aria-labelledby="appeal-title" className="scroll-mt-20 bg-paper-2 py-20 lg:py-24">
@@ -45,7 +56,7 @@ export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: s
           ) : null}
 
           <div className={cn("flex flex-col justify-center p-6 sm:p-10", appeal.image ? "lg:col-span-7" : "lg:col-span-12")}>
-            <p className="eyebrow text-crimson">Current appeal</p>
+            <p className="eyebrow text-crimson">{text.eyebrow}</p>
             <h2 id="appeal-title" className="mt-3 text-[2rem] font-semibold tracking-[-0.01em] sm:text-4xl">
               {appeal.title}
             </h2>
@@ -58,23 +69,24 @@ export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: s
                 <>
                   <div className="flex items-baseline justify-between gap-4">
                     <p className="font-display text-[2.2rem] leading-none font-semibold text-ink lining-nums tabular-nums sm:text-[2.4rem]">
-                      {soFar}
+                      {amount(appeal.soFar)}
+                      {plus}
                     </p>
                     <p className="font-display text-2xl leading-none font-semibold text-crimson lining-nums tabular-nums">
                       {percent}%
                     </p>
                   </div>
                   <p className="mt-1.5 text-ink-muted">
-                    {counted} towards a {format(goal)} goal
+                    <Fill template={text.towardsGoal} vars={{ counted, goal: amount(goal) }} />
                   </p>
 
                   <div
                     role="progressbar"
-                    aria-label="Progress towards the goal"
+                    aria-label={text.progressLabel}
                     aria-valuemin={0}
                     aria-valuemax={goal}
                     aria-valuenow={Math.min(appeal.soFar, goal)}
-                    aria-valuetext={`${soFar} ${counted} towards a ${format(goal)} goal`}
+                    aria-valuetext={`${amountText(appeal.soFar)}${plus} ${fill(text.towardsGoal, { counted, goal: amountText(goal) })}`}
                     className="mt-3 h-3 overflow-hidden rounded-full bg-paper-2 ring-1 ring-line ring-inset"
                   >
                     <div className="appeal-fill h-full rounded-full bg-crimson" style={{ width: `${percent}%` }} />
@@ -84,24 +96,25 @@ export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: s
                 // No limit: the running total, ruled off with the notebook's crimson margin line.
                 <div className="border-l-[3px] border-crimson pl-5">
                   <p className="font-display text-[2.75rem] leading-none font-semibold text-ink lining-nums tabular-nums sm:text-[3.25rem]">
-                    {soFar}
+                    {amount(appeal.soFar)}
+                    {plus}
                   </p>
-                  <p className="mt-2 text-lg text-ink-muted">{counted} so far, and counting</p>
+                  <p className="mt-2 text-lg text-ink-muted">{fill(text.soFar, { counted })}</p>
                 </div>
               )}
 
               <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted empty:hidden">
-                {reached ? <li className="font-semibold text-crimson">Goal reached — thank you!</li> : null}
+                {reached ? <li className="font-semibold text-crimson">{text.goalReached}</li> : null}
                 {appeal.donors ? (
                   <li className="flex items-center gap-1.5">
                     <Users aria-hidden className="size-4 text-crimson" />
-                    {appeal.donors.toLocaleString("en-IN")} {appeal.donors === 1 ? "donor" : "donors"}
+                    {plural(appeal.donors, text.donors)}
                   </li>
                 ) : null}
                 {appeal.daysLeft !== undefined ? (
                   <li className="flex items-center gap-1.5">
                     <CalendarClock aria-hidden className="size-4 text-crimson" />
-                    {daysLeftLabel(appeal.daysLeft)}
+                    {appeal.daysLeft <= 0 ? text.lastDay : plural(appeal.daysLeft, text.daysLeft)}
                   </li>
                 ) : null}
               </ul>
@@ -110,7 +123,7 @@ export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: s
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href={donateHref(donateUrl, { cause: appeal.cause?.slug })} size="lg">
                 <HeartHandshake aria-hidden />
-                Donate to this appeal
+                {text.donate}
               </ButtonLink>
               <ButtonLink
                 href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
@@ -120,7 +133,7 @@ export function Appeal({ appeal, donateUrl }: { appeal: AppealView; donateUrl: s
                 rel="noopener noreferrer"
               >
                 <MessageCircle aria-hidden />
-                Share on WhatsApp
+                {text.share}
               </ButtonLink>
             </div>
           </div>

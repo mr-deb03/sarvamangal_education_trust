@@ -9,6 +9,8 @@ export function Analytics() {
     <>
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${id}`} strategy="afterInteractive" />
       <Script id="ga4-init" strategy="afterInteractive">
+        {/* Google's bootstrap snippet: code, not website text. */}
+        {/* eslint-disable-next-line react/jsx-no-literals */}
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${id}');`}
       </Script>
     </>

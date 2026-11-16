@@ -1,7 +1,8 @@
 /**
  * Loads the site's original content into Payload: the old site's 35 events (photos
  * downloaded from the WordPress uploads), the four causes, testimonials,
- * supporters with logos, donation amounts, FAQs and site settings.
+ * supporters with logos, donation amounts, FAQs, site settings (with Identity & SEO)
+ * and all website text (the four "Website text" globals, from src/lib/cms/copy/defaults.ts).
  *
  *   npm run seed         create what's missing, leave existing records alone
  *   npm run seed:force   also overwrite existing records with the seed values
@@ -24,13 +25,15 @@ import {
   seedSettings,
   seedSupporters,
   seedTestimonials,
-} from "../lib/cms/seed/content";
-import { seedEvents } from "../lib/cms/seed/events";
-import type { ImageRef } from "../lib/cms/types";
+} from "@/lib/cms/seed/content";
+import { COPY_GLOBALS, defaultCopy, defaultIdentity, type CopyImage } from "@/lib/cms/copy/defaults";
+import { isImage } from "@/lib/cms/copy/merge";
+import { seedEvents } from "@/lib/cms/seed/events";
+import type { ImageRef } from "@/lib/cms/types";
 
 const force = process.argv.slice(2).includes("force");
 /** The site's public/ folder, where the seed's local photos and logos live. */
-const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../public");
+const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../public");
 const context = { disableRevalidate: true };
 const MIME: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -65,7 +68,7 @@ async function uploadImage(payload: Payload, image: ImageRef, name: string): Pro
       data = await fs.readFile(path.join(publicDir, image.src));
     }
   } catch (err) {
-    console.warn(`  ! could not load ${image.src}: ${(err as Error).message}`);
+    console.warn(`  ! could not load ${image.src}: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 
@@ -101,7 +104,7 @@ async function upsert(
     return doc.id;
   } catch (err) {
     stats.failed++;
-    console.warn(`  ! ${collection} “${label}”: ${(err as Error).message}`);
+    console.warn(`  ! ${collection} “${label}”: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
 }
@@ -217,9 +220,6 @@ async function seed(payload: Payload) {
   } else {
     const s = seedSettings;
     const heroImage = await uploadImage(payload, s.hero.image, "hero-children-notebooks");
-    const heroInsetImage = s.hero.insetImage
-      ? await uploadImage(payload, s.hero.insetImage, "hero-orthopedic-camp")
-      : null;
     await payload.updateGlobal({
       slug: "site-settings",
       context,
@@ -229,8 +229,6 @@ async function seed(payload: Payload) {
         heroHighlightWords: s.hero.highlightWords.map((word) => ({ word })),
         heroIntro: s.hero.intro,
         heroImage,
-        heroInsetImage,
-        heroInsetCaption: s.hero.insetCaption ?? null,
         impactStats: s.impactStats,
         notebookQuote: s.notebookQuote,
         donateUrl: s.donateUrl,
@@ -244,9 +242,58 @@ async function seed(payload: Payload) {
   }
 }
 
+/**
+ * Built-in copy → the shape Payload stores: lists of words become `[{ value }]`
+ * rows, photos become uploads (by id), everything else as it is.
+ */
+async function toPayloadData(payload: Payload, value: unknown, name: string): Promise<unknown> {
+  if (isImage(value)) {
+    const image = value as CopyImage;
+    // Media needs a description even where the site shows the image decoratively (alt="").
+    return uploadImage(payload, { ...image, alt: image.alt || `${defaultIdentity.siteName} ${name}` }, `copy-${name}`);
+  }
+  if (Array.isArray(value)) {
+    return Promise.all(
+      value.map((item, i) => (typeof item === "string" ? { value: item } : toPayloadData(payload, item, `${name}-${i}`))),
+    );
+  }
+  if (typeof value === "object" && value !== null) {
+    const entries = await Promise.all(
+      Object.entries(value).map(async ([k, v]) => [k, await toPayloadData(payload, v, `${name}-${k}`)] as const),
+    );
+    return Object.fromEntries(entries);
+  }
+  return value;
+}
+
+async function seedCopy(payload: Payload) {
+  console.log("Website text…");
+  const current = await payload.findGlobal({ slug: "site-settings", depth: 0 });
+  if (current.identity?.logo && !force) {
+    stats.skipped++;
+  } else {
+    const identity = (await toPayloadData(payload, defaultIdentity, "identity")) as Record<string, unknown>;
+    await payload.updateGlobal({ slug: "site-settings", context, data: { identity } });
+    stats.updated++;
+  }
+
+  for (const key of Object.keys(COPY_GLOBALS) as (keyof typeof COPY_GLOBALS)[]) {
+    const slug = COPY_GLOBALS[key];
+    const existing = (await payload.findGlobal({ slug, depth: 0 })) as { updatedAt?: string | null };
+    if (existing.updatedAt && !force) {
+      stats.skipped++;
+      continue;
+    }
+    const data = (await toPayloadData(payload, defaultCopy[key], key)) as Record<string, unknown>;
+    await payload.updateGlobal({ slug, context, data });
+    stats.updated++;
+  }
+}
+
 const payload = await getPayload({ config });
 try {
   await seed(payload);
+  await seedCopy(payload);
   console.log(
     `\nDone: ${stats.created} created, ${stats.updated} updated, ${stats.skipped} already there, ${stats.failed} failed.` +
       (force ? "" : "\nExisting records were left alone; run `npm run seed:force` to overwrite them."),

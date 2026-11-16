@@ -1,3 +1,4 @@
+import { defaultCopy } from "../copy/defaults";
 import type { ContentSource } from "../types";
 import {
   seedCauses,
@@ -14,6 +15,7 @@ export const seedSource: ContentSource = {
   siteSettings: async () => seedSettings,
   causes: async () => [...seedCauses].sort((a, b) => a.order - b.order),
   events: async () => [...seedEvents].sort((a, b) => b.startDate.localeCompare(a.startDate)),
+  event: async (slug) => seedEvents.find((e) => e.slug === slug) ?? null,
   testimonials: async () => seedTestimonials,
   supporters: async () => seedSupporters,
   donationTiers: async () => seedDonationTiers,
@@ -22,4 +24,5 @@ export const seedSource: ContentSource = {
   appeal: async () => null,
   // Same for the ticker's totals: only the trust's own figures, entered in /admin.
   liveUpdates: async () => ({ counters: [] }),
+  copy: async () => defaultCopy,
 };

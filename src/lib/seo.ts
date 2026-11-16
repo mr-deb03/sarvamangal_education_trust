@@ -1,47 +1,60 @@
 import type { Metadata } from "next";
 
-import type { CampEvent, Faq, SiteSettings } from "@/lib/cms/types";
+import type { CampEvent, CopyImage, Faq, Identity, SiteSettings } from "@/lib/cms/types";
 import { formatPlace } from "@/lib/format";
-import { FOUNDING_YEAR, ROUTES, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { ROUTES, SITE_URL, absoluteUrl } from "@/lib/site";
 
 /**
  * Per-page metadata. Next merges `openGraph` shallowly, so every page sets the
- * whole block through this helper rather than relying on the layout's.
+ * whole block through this helper rather than relying on the layout's — and
+ * always with an image: the page's own, or the share photo from Site settings.
  */
 export function pageMetadata({
   title,
   description,
   path,
+  identity,
   absoluteTitle = false,
   image,
+  type = "website",
 }: {
   title: string;
   description: string;
   path: string;
+  identity: Identity;
   absoluteTitle?: boolean;
   /** Share image (e.g. a camp's cover photo); the site-wide one is used otherwise. */
-  image?: { src: string; alt: string };
+  image?: CopyImage;
+  /** "article" for a camp's write-up. */
+  type?: "website" | "article";
 }): Metadata {
-  const images = image ? [{ url: image.src, alt: image.alt }] : undefined;
+  const share = image ?? identity.shareImage;
+  const images = [
+    {
+      url: absoluteUrl(share.src),
+      alt: share.alt,
+      ...(share.width && share.height ? { width: share.width, height: share.height } : {}),
+    },
+  ];
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
     alternates: { canonical: path },
     openGraph: {
-      type: "website",
+      type,
       locale: "en_IN",
-      siteName: SITE_NAME,
+      siteName: identity.siteName,
       url: path,
       title,
       description,
-      ...(images ? { images } : {}),
+      images,
     },
     twitter: {
       card: "summary_large_image",
-      site: "@sarvamangalorg",
+      ...(identity.twitterHandle ? { site: identity.twitterHandle } : {}),
       title,
       description,
-      ...(images ? { images } : {}),
+      images,
     },
   };
 }
@@ -54,19 +67,18 @@ export const ORG_ID = `${SITE_URL}/#organization`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
 
 export function organizationJsonLd(settings: SiteSettings) {
-  const { contact, legal } = settings;
+  const { contact, legal, identity } = settings;
   return {
     "@context": "https://schema.org",
     "@type": "NGO",
     "@id": ORG_ID,
-    name: SITE_NAME,
-    // Both names appear on the trust's own camp banners.
-    alternateName: ["Sarvamangal Foundation", "SMET"],
+    name: identity.siteName,
+    ...(identity.alternateNames.length > 0 ? { alternateName: identity.alternateNames } : {}),
     url: SITE_URL,
-    logo: `${SITE_URL}/brand/sarvamangal-logo.png`,
-    image: `${SITE_URL}/images/children-notebook-distribution.jpg`,
-    description: SITE_DESCRIPTION,
-    foundingDate: String(FOUNDING_YEAR),
+    logo: absoluteUrl(identity.logo.src),
+    image: absoluteUrl(identity.shareImage.src),
+    description: identity.description,
+    foundingDate: identity.foundingYear,
     email: contact.email,
     telephone: contact.phone.replace(/\s/g, ""),
     taxID: legal.pan,
@@ -78,29 +90,19 @@ export function organizationJsonLd(settings: SiteSettings) {
       ...(contact.postalCode ? { postalCode: contact.postalCode } : {}),
       addressCountry: "IN",
     },
-    areaServed: [
-      { "@type": "City", name: "Mumbai" },
-      { "@type": "State", name: "Maharashtra" },
-    ],
-    knowsAbout: [
-      "Free medical camps",
-      "Blood donation drives",
-      "Notebook distribution for schoolchildren",
-      "Career guidance",
-      "Exam anxiety counselling",
-      "Yoga and meditation",
-    ],
+    areaServed: identity.areaServed.map((name) => ({ "@type": "AdministrativeArea", name })),
+    knowsAbout: identity.knowsAbout,
     sameAs: settings.socials.map((s) => s.url),
   };
 }
 
-export function websiteJsonLd() {
+export function websiteJsonLd(identity: Identity) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": WEBSITE_ID,
     url: SITE_URL,
-    name: SITE_NAME,
+    name: identity.siteName,
     inLanguage: "en-IN",
     publisher: { "@id": ORG_ID },
   };
@@ -118,15 +120,16 @@ export function faqJsonLd(faqs: Faq[]) {
   };
 }
 
-export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+/** Built from the same crumbs the page shows, so the two always match (Google checks). */
+export function breadcrumbJsonLd(crumbs: { label: string; href?: string }[], currentPath: string) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: items.map((item, i) => ({
+    itemListElement: crumbs.map((crumb, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      name: item.name,
-      item: `${SITE_URL}${item.path}`,
+      name: crumb.label,
+      item: `${SITE_URL}${crumb.href ?? currentPath}`,
     })),
   };
 }
@@ -164,8 +167,4 @@ export function eventJsonLd(e: CampEvent) {
     },
     organizer: { "@id": ORG_ID },
   };
-}
-
-function absoluteUrl(src: string) {
-  return src.startsWith("http") ? src : `${SITE_URL}${src}`;
 }

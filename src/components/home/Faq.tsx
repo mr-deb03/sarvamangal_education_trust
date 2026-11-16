@@ -1,22 +1,25 @@
 import { Plus } from "lucide-react";
 
 import { SectionIntro } from "@/components/ui/SectionIntro";
-import type { Faq as FaqItem } from "@/lib/cms/types";
+import type { Faq as FaqItem, SiteCopy } from "@/lib/cms/types";
 
 /** Native <details> — works without JS, and the answers stay in the HTML for search engines. */
-export function Faq({ faqs, email }: { faqs: FaqItem[]; email: string }) {
+export function Faq({ faqs, email, copy }: { faqs: FaqItem[]; email: string; copy: SiteCopy }) {
   if (faqs.length === 0) return null;
+  const text = copy.home.faq;
 
   return (
     <section aria-labelledby="faq-title" className="defer-render py-14 sm:py-20 lg:py-28">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
         <div className="lg:col-span-4">
-          <SectionIntro id="faq-title" eyebrow="Questions" title="Before you give">
-            What donors and volunteers ask us most. Something else on your mind?{" "}
-            <a href={`mailto:${email}`} className="font-semibold text-crimson underline decoration-crimson/40 underline-offset-4 hover:decoration-crimson">
-              Write to us
+          <SectionIntro id="faq-title" eyebrow={text.eyebrow} title={text.title}>
+            {text.intro}{" "}
+            <a
+              href={`mailto:${email}`}
+              className="font-semibold text-crimson underline decoration-crimson/40 underline-offset-4 hover:decoration-crimson"
+            >
+              {text.writeToUs}
             </a>
-            .
           </SectionIntro>
         </div>
 

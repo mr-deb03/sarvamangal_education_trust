@@ -49,25 +49,32 @@ const MIN_ENTRIES = 8;
  * on hover and stands still under reduced motion, where it becomes a
  * sideways-scrollable row. No pause button — owner's call.
  */
-export function LiveTicker({ items, updated }: { items: TickerItem[]; updated?: string }) {
+export function LiveTicker({
+  items,
+  text,
+}: {
+  items: TickerItem[];
+  /** `updated` is already filled in ("· updated 12 Nov"). */
+  text: { live: string; label: string; updated?: string };
+}) {
   if (items.length === 0) return null;
 
   const loop = Array.from({ length: Math.max(MIN_ENTRIES, items.length) }, (_, i) => ({
-    item: items[i % items.length]!,
+    item: items[i % items.length] as TickerItem,
     repeat: i >= items.length,
   }));
   const duration = { "--ticker-duration": `${loop.length * 5}s` } as CSSProperties;
 
   return (
-    <section aria-label="Live updates" className="on-ink relative border-b border-white/10">
+    <section aria-label={text.label} className="on-ink relative border-b border-white/10">
       <div className="flex h-12 items-stretch">
         <p className="flex shrink-0 items-center gap-2 bg-crimson px-3 text-white sm:px-4">
           <span aria-hidden className="relative flex size-2">
             <span className="absolute inline-flex size-full rounded-full bg-white opacity-70 motion-safe:animate-ping" />
             <span className="relative inline-flex size-2 rounded-full bg-white" />
           </span>
-          <span className="eyebrow text-[0.72rem] tracking-[0.16em]">Live</span>
-          {updated ? <span className="hidden text-[0.8rem] text-white/80 sm:inline">· updated {updated}</span> : null}
+          <span className="eyebrow text-[0.72rem] tracking-[0.16em]">{text.live}</span>
+          {text.updated ? <span className="hidden text-[0.8rem] text-white sm:inline">{text.updated}</span> : null}
         </p>
 
         <ul className="sr-only">
