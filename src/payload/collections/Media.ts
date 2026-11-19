@@ -20,7 +20,8 @@ export const Media: CollectionConfig = {
     // Local disk in development. For a serverless host, add a storage adapter
     // (@payloadcms/storage-s3 or storage-vercel-blob) — see CLAUDE.md.
     staticDir: path.resolve(dirname, "../../../media"),
-    mimeTypes: ["image/*"],
+    // Raster formats only: an SVG can carry script and is served from the admin's own origin.
+    mimeTypes: ["image/jpeg", "image/png", "image/webp", "image/avif"],
     focalPoint: true,
     // Keep originals a sensible size; next/image does the per-device resizing.
     resizeOptions: { width: 2400, withoutEnlargement: true },

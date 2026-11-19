@@ -6,13 +6,17 @@
  * never see a Payload document or a media relation.
  */
 
+import type { Identity, SiteCopy } from "./copy/defaults";
+import type { LiveIcon, SocialPlatform } from "./options";
+
+export type { Identity, LiveIcon, SiteCopy, SocialPlatform };
+export type { CopyImage, HeaderLink, NavLink, Plural } from "./copy/defaults";
+
 export type ImageRef = {
   src: string;
   alt: string;
   width?: number;
   height?: number;
-  /** Tiny base64 preview, when the source provides one. */
-  blurDataURL?: string;
   /** Focal point set in the admin, in percent. Used as object-position. */
   focalPoint?: { x: number; y: number };
 };
@@ -73,6 +77,8 @@ export type EventTimeline = {
   total: number;
   /** Number of events per cause slug. */
   countByCause: Record<string, number>;
+  /** Year of the first camp on the register, e.g. "2016". */
+  firstYear?: string;
 };
 
 export type Testimonial = {
@@ -81,6 +87,7 @@ export type Testimonial = {
   name: string;
   role: string;
   supporterSince?: number;
+  /** Links the testimonial to a cause in the CMS (used by the seed). */
   causeSlug?: string;
   /** The person's photo. Without one, the card shows their initials. */
   photo?: ImageRef;
@@ -113,9 +120,10 @@ export type ImpactStat = {
   label: string;
 };
 
-export type SocialPlatform = "facebook" | "instagram" | "x" | "linkedin" | "youtube";
 
 export type SiteSettings = {
+  /** Name, description, logo, share image and search-engine facts (Site settings → Identity & SEO). */
+  identity: Identity;
   hero: {
     eyebrow: string;
     /** Each entry renders on its own line. */
@@ -124,8 +132,6 @@ export type SiteSettings = {
     highlightWords: string[];
     intro: string;
     image: ImageRef;
-    insetImage?: ImageRef;
-    insetCaption?: string;
   };
   impactStats: ImpactStat[];
   notebookQuote: {
@@ -183,9 +189,6 @@ export type AppealView = Appeal & {
   daysLeft?: number;
 };
 
-/** Icons for live-ticker totals. Keep in sync with LIVE_ICONS in src/payload/globals/LiveUpdates.ts. */
-export type LiveIcon = "pouch" | "notebook" | "blood" | "health" | "people" | "tree" | "school" | "heart";
-
 /** A running total in the live ticker, e.g. 1,500+ pouches given to students. */
 export type LiveCounter = {
   value: number;
@@ -205,8 +208,10 @@ export type LiveUpdates = {
 export type ContentSource = {
   siteSettings(): Promise<SiteSettings>;
   causes(): Promise<Cause[]>;
-  /** Newest first. */
+  /** Newest first. Without the write-up and gallery (see `event`). */
   events(): Promise<CampEvent[]>;
+  /** One published camp with its full write-up and gallery, or null. */
+  event(slug: string): Promise<CampEvent | null>;
   testimonials(): Promise<Testimonial[]>;
   supporters(): Promise<Supporter[]>;
   donationTiers(): Promise<DonationTier[]>;
@@ -214,6 +219,8 @@ export type ContentSource = {
   /** Null when switched off or incomplete. */
   appeal(): Promise<Appeal | null>;
   liveUpdates(): Promise<LiveUpdates>;
+  /** All website text, CMS values over the built-in copy. */
+  copy(): Promise<SiteCopy>;
 };
 
 export type HomePageData = {
@@ -227,4 +234,5 @@ export type HomePageData = {
   /** Null when there is no live appeal. */
   appeal: AppealView | null;
   liveUpdates: LiveUpdates;
+  copy: SiteCopy;
 };

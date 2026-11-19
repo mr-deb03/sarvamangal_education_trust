@@ -1,3 +1,4 @@
+import { defaultIdentity } from "../copy/defaults";
 import type {
   Cause,
   DonationTier,
@@ -17,6 +18,7 @@ import type {
  */
 
 export const seedSettings: SiteSettings = {
+  identity: defaultIdentity,
   hero: {
     eyebrow: "Sarvamangal Education Trust · Mumbai · since 2015",
     headlineLines: ["Every child deserves a notebook.", "Every elder deserves a doctor."],
@@ -29,13 +31,6 @@ export const seedSettings: SiteSettings = {
       width: 1600,
       height: 1341,
     },
-    insetImage: {
-      src: "/images/orthopedic-checkup-elder-patient.jpg",
-      alt: "A doctor writes notes for an elderly woman during a free orthopedic consultation",
-      width: 1360,
-      height: 805,
-    },
-    insetCaption: "Free orthopedic camp, Mumbai",
   },
   impactStats: [
     { value: "150+", label: "free camps and drives since 2015" },
@@ -279,7 +274,7 @@ export const seedFaqs: Faq[] = [
     id: "seed-faq-volunteer",
     question: "How can I volunteer?",
     answer:
-      "Fill in the volunteer form and we’ll get in touch about upcoming camps. Volunteers help run each camp on the ground, from registering visitors to handing out notebooks. No special skills needed.",
+      "Message us on WhatsApp and we’ll get in touch about upcoming camps. Volunteers help run each camp on the ground, from registering visitors to handing out notebooks. No special skills needed.",
   },
   {
     id: "seed-faq-csr",

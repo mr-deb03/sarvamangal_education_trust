@@ -25,14 +25,6 @@ type Props = {
   user?: { name?: string | null; email?: string; role?: string | null } | null;
 };
 
-type EventDoc = {
-  id: number | string;
-  title: string;
-  startDate: string;
-  locality?: string | null;
-  city?: string | null;
-  beneficiaries?: { count?: number | null; label?: string | null } | null;
-};
 
 /** "Sun, 22 Nov 2026" from a stored timestamp, in India's calendar. */
 const day = (iso: string) => {
@@ -89,8 +81,8 @@ export async function TaskDashboard({ payload, user }: Props) {
     newEnquiry("contact"),
   ]);
 
-  const nextCamp = next.docs[0] as EventDoc | undefined;
-  const latestCamp = latest.docs[0] as EventDoc | undefined;
+  const nextCamp = next.docs[0];
+  const latestCamp = latest.docs[0];
   const totals = (live.counters ?? [])
     .map((c) => `${c.value.toLocaleString("en-IN")}${c.plus ? "+" : ""} ${c.label}`)
     .join(" · ");
@@ -225,7 +217,7 @@ export async function TaskDashboard({ payload, user }: Props) {
                 {drafts.totalDocs} waiting to publish
               </p>
               <ul className="sm-dash__drafts">
-                {(drafts.docs as EventDoc[]).map((d) => (
+                {drafts.docs.map((d) => (
                   <li key={d.id}>
                     <Link href={`${admin}/collections/events/${d.id}`}>{d.title}</Link>
                   </li>

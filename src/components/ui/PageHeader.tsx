@@ -9,6 +9,8 @@ import { Breadcrumbs, type Crumb } from "./Breadcrumbs";
 type Props = {
   id: string;
   crumbs: Crumb[];
+  /** Screen-reader name of the breadcrumb trail (Buttons & labels → Screen-reader labels). */
+  breadcrumbLabel: string;
   eyebrow: string;
   title: ReactNode;
   intro?: ReactNode;
@@ -21,12 +23,12 @@ type Props = {
 };
 
 /** The top of every inner page: breadcrumbs, the page's one <h1>, a line of intro. */
-export function PageHeader({ id, crumbs, eyebrow, title, intro, children, tone = "dark", image }: Props) {
+export function PageHeader({ id, crumbs, breadcrumbLabel, eyebrow, title, intro, children, tone = "dark", image }: Props) {
   const dark = tone === "dark";
   return (
     <section aria-labelledby={id} className={dark ? "on-ink" : "bg-paper-2"}>
       <div className="mx-auto max-w-7xl px-4 pt-4 pb-10 sm:px-6 sm:pt-6 sm:pb-14 lg:px-8">
-        <Breadcrumbs tone={tone} items={crumbs} />
+        <Breadcrumbs tone={tone} items={crumbs} label={breadcrumbLabel} />
         <div className={cn(image && "lg:grid lg:grid-cols-12 lg:items-end lg:gap-12")}>
           <div className={cn(image && "lg:col-span-7 lg:pb-4")}>
             <p className={cn("eyebrow mt-6", dark ? "text-marigold" : "text-crimson")}>{eyebrow}</p>

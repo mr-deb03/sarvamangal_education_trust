@@ -105,11 +105,23 @@ export interface Config {
     'site-settings': SiteSetting;
     'fundraising-appeal': FundraisingAppeal;
     'live-updates': LiveUpdate;
+    'site-layout': SiteLayout;
+    'homepage-sections': HomepageSection;
+    'page-text': PageText;
+    'policy-text': PolicyText;
+    'form-text': FormText;
+    labels: Label;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'fundraising-appeal': FundraisingAppealSelect<false> | FundraisingAppealSelect<true>;
     'live-updates': LiveUpdatesSelect<false> | LiveUpdatesSelect<true>;
+    'site-layout': SiteLayoutSelect<false> | SiteLayoutSelect<true>;
+    'homepage-sections': HomepageSectionsSelect<false> | HomepageSectionsSelect<true>;
+    'page-text': PageTextSelect<false> | PageTextSelect<true>;
+    'policy-text': PolicyTextSelect<false> | PolicyTextSelect<true>;
+    'form-text': FormTextSelect<false> | FormTextSelect<true>;
+    labels: LabelsSelect<false> | LabelsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -777,13 +789,51 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Homepage hero, numbers, contact details and links. Empty fields use the built-in text.
+ * Identity & SEO, homepage hero, numbers, contact details and links. Empty fields use the built-in text.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
  */
 export interface SiteSetting {
   id: number;
+  identity?: {
+    siteName?: string | null;
+    shortName?: string | null;
+    homeTitle?: string | null;
+    description?: string | null;
+    alternateNames?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    foundingYear?: string | null;
+    twitterHandle?: string | null;
+    /**
+     * Leave empty to keep the built-in photo.
+     */
+    logo?: (number | null) | Media;
+    /**
+     * Leave empty to keep the built-in photo.
+     */
+    mark?: (number | null) | Media;
+    /**
+     * Leave empty to keep the built-in photo.
+     */
+    shareImage?: (number | null) | Media;
+    areaServed?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    knowsAbout?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
   heroEyebrow?: string | null;
   /**
    * Each line starts on a new line.
@@ -804,9 +854,10 @@ export interface SiteSetting {
       }[]
     | null;
   heroIntro?: string | null;
+  /**
+   * The large photo in the hero's photo wall.
+   */
   heroImage?: (number | null) | Media;
-  heroInsetImage?: (number | null) | Media;
-  heroInsetCaption?: string | null;
   impactStats?:
     | {
         /**
@@ -842,6 +893,9 @@ export interface SiteSetting {
     eightyGNo?: string | null;
     eightyGDate?: string | null;
   };
+  /**
+   * Full address of the donation page, starting with https://
+   */
   donateUrl?: string | null;
   /**
    * Digits only, with country code, e.g. 918108103856.
@@ -931,10 +985,911 @@ export interface LiveUpdate {
   createdAt?: string | null;
 }
 /**
+ * Menu links, footer text, the WhatsApp chat and the phone Donate bar — on every page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-layout".
+ */
+export interface SiteLayout {
+  id: number;
+  nav?: {
+    links?:
+      | {
+          label: string;
+          /**
+           * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+           */
+          href: string;
+          showCauses?: boolean | null;
+          id?: string | null;
+        }[]
+      | null;
+    mobileLinks?:
+      | {
+          label: string;
+          /**
+           * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+           */
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+    donate?: string | null;
+    mobileDonate?: string | null;
+    /**
+     * Keep {phone} as written — the site fills it in ({phone} = the phone number).
+     */
+    call?: string | null;
+  };
+  footer?: {
+    /**
+     * Keep {foundingYear} as written — the site fills it in ({foundingYear} = the founding year).
+     */
+    about?: string | null;
+    wordmarkTop?: string | null;
+    wordmarkBottom?: string | null;
+    exploreHeading?: string | null;
+    exploreLinks?:
+      | {
+          label: string;
+          /**
+           * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+           */
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+    causesHeading?: string | null;
+    contactHeading?: string | null;
+    registrationLabel?: string | null;
+    panLabel?: string | null;
+    eightyGLabel?: string | null;
+    secureLead?: string | null;
+    secureText?: string | null;
+    netBanking?: string | null;
+    policyLinks?:
+      | {
+          label: string;
+          /**
+           * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+           */
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Keep {year}, {siteName} as written — the site fills them in ({year} = the year; {siteName} = the trust's name).
+     */
+    copyright?: string | null;
+  };
+  whatsapp?: {
+    greeting?: string | null;
+    bubbleLead?: string | null;
+    bubbleText?: string | null;
+    startChat?: string | null;
+  };
+  donateBar?: string | null;
+  skipToContent?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Headings, intros and buttons of each homepage section. The hero headline and photo are in Site settings.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage-sections".
+ */
+export interface HomepageSection {
+  id: number;
+  hero?: {
+    badges?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    amountLegend?: string | null;
+    otherAmount?: string | null;
+    /**
+     * Keep {total}, {year} as written — the site fills them in ({total} = the number of camps; {year} = the year).
+     */
+    photosCaption?: string | null;
+    /**
+     * Keep {day} as written — the site fills it in ({day} = the day).
+     */
+    nextCamp?: string | null;
+    seeRegister?: string | null;
+    citizensOnly?: string | null;
+  };
+  comingUp?: {
+    eyebrow?: string | null;
+    title?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    intro?: string | null;
+    alsoComingUp?: string | null;
+  };
+  causes?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+  };
+  register?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    /**
+     * Keep {total} as written — the site fills it in ({total} = the number of camps).
+     */
+    browseAll?: string | null;
+    dateColumn?: string | null;
+    campColumn?: string | null;
+    nextLabel?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    upcomingCount?: string | null;
+    seeDetails?: string | null;
+    seeDates?: string | null;
+    noDateYet?: string | null;
+    notifyPrompt?: string | null;
+    notifyCta?: string | null;
+  };
+  appeal?: {
+    eyebrow?: string | null;
+    raised?: string | null;
+    /**
+     * Keep {counted}, {goal} as written — the site fills them in ({counted} = what is counted; {goal} = the goal).
+     */
+    towardsGoal?: string | null;
+    /**
+     * Keep {counted} as written — the site fills it in ({counted} = what is counted).
+     */
+    soFar?: string | null;
+    goalReached?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    donors?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    daysLeft?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    lastDay?: string | null;
+    donate?: string | null;
+    share?: string | null;
+    progressLabel?: string | null;
+  };
+  give?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    watermark?: string | null;
+    pickerLegend?: string | null;
+    anyAmount?: string | null;
+    taxNote?: string | null;
+  };
+  voices?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    supportersLabel?: string | null;
+    /**
+     * Keep {year} as written — the site fills it in ({year} = the year).
+     */
+    supporterSince?: string | null;
+  };
+  involved?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    volunteer?: {
+      /**
+       * Leave empty to keep the built-in photo.
+       */
+      image?: (number | null) | Media;
+      eyebrow?: string | null;
+      title?: string | null;
+      text?: string | null;
+      cta?: string | null;
+      /**
+       * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+       */
+      link?: string | null;
+      whatsappMessage?: string | null;
+    };
+    csr?: {
+      title?: string | null;
+      text?: string | null;
+      cta?: string | null;
+      /**
+       * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+       */
+      link?: string | null;
+      whatsappMessage?: string | null;
+    };
+    notify?: {
+      title?: string | null;
+      text?: string | null;
+      cta?: string | null;
+    };
+  };
+  faq?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    writeToUs?: string | null;
+  };
+  finalCta?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    text?: string | null;
+    donate?: string | null;
+    volunteer?: string | null;
+    /**
+     * A page on this site (/events), a section (#contact), or a full https:// address. Leave empty for the default shown in the hint.
+     */
+    volunteerLink?: string | null;
+    nextComingUp?: string | null;
+    nextCamp?: string | null;
+    dateBeingFixed?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The events, camp, causes, cause, about, volunteer, CSR, contact and not-found pages: titles for Google, headings and buttons.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-text".
+ */
+export interface PageText {
+  id: number;
+  events?: {
+    /**
+     * Keep {firstYear} as written — the site fills it in ({firstYear} = the year of the first camp).
+     */
+    metaTitle?: string | null;
+    /**
+     * Keep {firstYear} as written — the site fills it in ({firstYear} = the year of the first camp).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    /**
+     * Keep {total}, {firstYear} as written — the site fills them in ({total} = the number of camps; {firstYear} = the year of the first camp).
+     */
+    countLine?: string | null;
+    byCauseLabel?: string | null;
+    pastLabel?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    yearCount?: {
+      one?: string | null;
+      other?: string | null;
+    };
+  };
+  event?: {
+    notFoundTitle?: string | null;
+    /**
+     * Keep {title}, {date} as written — the site fills them in ({title} = the camp's title; {date} = the date).
+     */
+    metaTitle?: string | null;
+    /**
+     * Keep {title}, {siteName}, {date}, {place} as written — the site fills them in ({title} = the camp's title; {siteName} = the trust's name; {date} = the date; {place} = the place).
+     */
+    metaDescription?: string | null;
+    /**
+     * Keep {start}, {end} as written — the site fills them in ({start} = the first day; {end} = the last day).
+     */
+    dateRange?: string | null;
+    highlightsTitle?: string | null;
+    partnersTitle?: string | null;
+    galleryTitle?: string | null;
+    helpLabel?: string | null;
+    helpEyebrow?: string | null;
+    helpText?: string | null;
+    helpDonate?: string | null;
+    helpNote?: string | null;
+    share?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    seeAllPhotos?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    photoCount?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    detailsLabel?: string | null;
+    detailsTitle?: string | null;
+    when?: string | null;
+    where?: string | null;
+    directions?: string | null;
+    causeLabel?: string | null;
+    peopleServed?: string | null;
+    expected?: string | null;
+    moreLabel?: string | null;
+    /**
+     * Keep {cause} as written — the site fills it in ({cause} = the cause).
+     */
+    moreInCause?: string | null;
+    /**
+     * Keep {cause} as written — the site fills it in ({cause} = the cause).
+     */
+    allInCause?: string | null;
+    newer?: string | null;
+    older?: string | null;
+    wholeRegister?: string | null;
+  };
+  causes?: {
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+  };
+  cause?: {
+    notFoundTitle?: string | null;
+    /**
+     * Keep {cause}, {tagline} as written — the site fills them in ({cause} = the cause; {tagline} = the cause's tagline).
+     */
+    metaTitle?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    campCount?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    /**
+     * Keep {year} as written — the site fills it in ({year} = the year).
+     */
+    since?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    comingUp?: string | null;
+    /**
+     * Keep {cause} as written — the site fills it in ({cause} = the cause).
+     */
+    give?: string | null;
+    seeCamps?: string | null;
+    /**
+     * Keep {cause} as written — the site fills it in ({cause} = the cause).
+     */
+    campsTitle?: string | null;
+    othersLabel?: string | null;
+    othersTitle?: string | null;
+  };
+  about?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName}, {foundingYear} as written — the site fills them in ({siteName} = the trust's name; {foundingYear} = the founding year).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    /**
+     * Keep {foundingYear} as written — the site fills it in ({foundingYear} = the founding year).
+     */
+    title?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    intro?: string | null;
+    /**
+     * Leave empty to keep the built-in photo.
+     */
+    image?: (number | null) | Media;
+    imageCaption?: string | null;
+    name?: {
+      hindi?: string | null;
+      meaning?: string | null;
+    };
+    believe?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      /**
+       * Keep {foundingYear} as written — the site fills it in ({foundingYear} = the founding year).
+       */
+      text?: string | null;
+      quote?: string | null;
+      closing?: string | null;
+    };
+    numbers?: {
+      title?: string | null;
+      registerStat?: string | null;
+    };
+    accountable?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      text?: string | null;
+      cta?: string | null;
+    };
+  };
+  volunteer?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    /**
+     * Leave empty to keep the built-in photo.
+     */
+    image?: (number | null) | Media;
+    rolesTitle?: string | null;
+    roles?:
+      | {
+          title: string;
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+    formTitle?: string | null;
+    formIntro?: string | null;
+    stepsTitle?: string | null;
+    steps?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    trainingEyebrow?: string | null;
+    trainingCamp?: string | null;
+    trainingCta?: string | null;
+  };
+  csr?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    registerCta?: string | null;
+    /**
+     * Keep {phone} as written — the site fills it in ({phone} = the phone number).
+     */
+    call?: string | null;
+    why?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      paragraphs?:
+        | {
+            value: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    ways?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      adoptEyebrow?: string | null;
+      adoptTitle?: string | null;
+      adoptText?: string | null;
+      /**
+       * Keep {n} as written — the site fills it in ({n} = the number).
+       */
+      adoptCount?: {
+        one?: string | null;
+        other?: string | null;
+      };
+      payrollTitle?: string | null;
+      payrollText?: string | null;
+      teamTitle?: string | null;
+      teamText?: string | null;
+    };
+    facts?: {
+      title?: string | null;
+      /**
+       * Keep {foundingYear} as written — the site fills it in ({foundingYear} = the founding year).
+       */
+      text?: string | null;
+    };
+    form?: {
+      eyebrow?: string | null;
+      title?: string | null;
+      text?: string | null;
+    };
+  };
+  contact?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    intro?: string | null;
+    callLabel?: string | null;
+    whatsappLabel?: string | null;
+    whatsappCta?: string | null;
+    emailLabel?: string | null;
+    officeLabel?: string | null;
+    directions?: string | null;
+    /**
+     * Keep {address} as written — the site fills it in ({address} = address).
+     */
+    directionsLabel?: string | null;
+    formTitle?: string | null;
+    formIntro?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    schemaName?: string | null;
+  };
+  notFound?: {
+    metaTitle?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    text?: string | null;
+    home?: string | null;
+    donate?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The privacy policy and terms & conditions, section by section. In a section's text: a blank line starts a new paragraph, a line starting “- ” is a bullet point, **double stars** make words bold.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "policy-text".
+ */
+export interface PolicyText {
+  id: number;
+  privacy?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    intro?: string | null;
+    updated?: string | null;
+    linkText?: string | null;
+    rightsPhone?: string | null;
+    sections?:
+      | {
+          title: string;
+          /**
+           * A blank line starts a new paragraph. Start a line with “- ” for a bullet point. Wrap words in **double stars** to make them bold.
+           */
+          body: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  terms?: {
+    metaTitle?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    metaDescription?: string | null;
+    breadcrumb?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Keep {domain} as written — the site fills it in ({domain} = domain).
+     */
+    intro?: string | null;
+    updated?: string | null;
+    linkText?: string | null;
+    sections?:
+      | {
+          title: string;
+          /**
+           * A blank line starts a new paragraph. Start a line with “- ” for a bullet point. Wrap words in **double stars** to make them bold. Keep {siteName}, {address} as written — the site fills them in ({siteName} = the trust's name; {address} = address).
+           */
+          body: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The volunteer, CSR and contact forms: labels, hints, what to fix, and the thank-you notes.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-text".
+ */
+export interface FormText {
+  id: number;
+  common?: {
+    requiredMark?: string | null;
+    optional?: string | null;
+    choose?: string | null;
+    phonePlaceholder?: string | null;
+    sending?: string | null;
+    fixErrors?: string | null;
+    unavailable?: string | null;
+    unavailableCta?: string | null;
+    orWhatsapp?: string | null;
+    /**
+     * Keep {privacyLink} as written — the site fills it in ({privacyLink} = privacyLink).
+     */
+    privacyNote?: string | null;
+    thanksTitle?: string | null;
+    spamTrap?: string | null;
+  };
+  errors?: {
+    name?: string | null;
+    phone?: string | null;
+    phoneMissing?: string | null;
+    email?: string | null;
+    workEmail?: string | null;
+    pincode?: string | null;
+    date?: string | null;
+    company?: string | null;
+    address?: string | null;
+    phoneOrEmail?: string | null;
+    message?: string | null;
+  };
+  volunteer?: {
+    submit?: string | null;
+    thanks?: string | null;
+    whatsappMessage?: string | null;
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    dateOfBirth?: string | null;
+    address?: string | null;
+    pincode?: string | null;
+    reference?: string | null;
+    referenceHint?: string | null;
+    occupation?: string | null;
+    student?: string | null;
+    job?: string | null;
+    business?: string | null;
+    education?: string | null;
+    educationOptions?:
+      | {
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    specialisation?: string | null;
+    specialisationHint?: string | null;
+    educationStatus?: string | null;
+    pursuing?: string | null;
+    completed?: string | null;
+    message?: string | null;
+  };
+  csr?: {
+    submit?: string | null;
+    thanks?: string | null;
+    whatsappMessage?: string | null;
+    name?: string | null;
+    company?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    address?: string | null;
+    message?: string | null;
+    messageHint?: string | null;
+  };
+  contact?: {
+    submit?: string | null;
+    thanks?: string | null;
+    whatsappMessage?: string | null;
+    name?: string | null;
+    phone?: string | null;
+    phoneHint?: string | null;
+    email?: string | null;
+    message?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Short labels used across the site, WhatsApp and calendar messages, and screen-reader labels.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "labels".
+ */
+export interface Label {
+  id: number;
+  common?: {
+    home?: string | null;
+    /**
+     * Keep {amount} as written — the site fills it in ({amount} = the amount).
+     */
+    donateAmount?: string | null;
+    donateNow?: string | null;
+  };
+  camp?: {
+    directions?: string | null;
+    addToCalendar?: string | null;
+    sendOnWhatsapp?: string | null;
+    highlights?: string | null;
+    helpFund?: string | null;
+    volunteer?: string | null;
+    shareLead?: string | null;
+    shareCta?: string | null;
+    entryFree?: string | null;
+    /**
+     * Keep {date} as written — the site fills it in ({date} = the date).
+     */
+    endsOn?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    campCount?: {
+      one?: string | null;
+      other?: string | null;
+    };
+    onRegister?: string | null;
+    /**
+     * Keep {cause} as written — the site fills it in ({cause} = the cause).
+     */
+    seeCause?: string | null;
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    countdownDays?: string | null;
+    countdownTomorrow?: string | null;
+    countdownToday?: string | null;
+    countdownOnNow?: string | null;
+  };
+  ticker?: {
+    live?: string | null;
+    /**
+     * Keep {date} as written — the site fills it in ({date} = the date).
+     */
+    updated?: string | null;
+    /**
+     * Keep {title}, {date} as written — the site fills them in ({title} = the camp's title; {date} = the date).
+     */
+    latestCamp?: string | null;
+    /**
+     * Keep {year} as written — the site fills it in ({year} = the year).
+     */
+    campsSince?: string | null;
+    campsTotal?: string | null;
+  };
+  messages?: {
+    notifyNextCamp?: string | null;
+    /**
+     * Keep {title}, {day} as written — the site fills them in ({title} = the camp's title; {day} = the day).
+     */
+    volunteerAtCamp?: string | null;
+    /**
+     * Keep {title}, {when}, {place}, {siteName} as written — the site fills them in ({title} = the camp's title; {when} = the day and time; {place} = the place; {siteName} = the trust's name).
+     */
+    shareCamp?: string | null;
+    /**
+     * Keep {title}, {siteName} as written — the site fills them in ({title} = the camp's title; {siteName} = the trust's name).
+     */
+    shareAppeal?: string | null;
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    calendarDetails?: string | null;
+    /**
+     * Keep {time} as written — the site fills it in ({time} = the time).
+     */
+    calendarTime?: string | null;
+  };
+  gallery?: {
+    /**
+     * Keep {n} as written — the site fills it in ({n} = the number).
+     */
+    showAll?: string | null;
+    /**
+     * Keep {title} as written — the site fills it in ({title} = the camp's title).
+     */
+    viewer?: string | null;
+    /**
+     * Keep {n}, {total} as written — the site fills them in ({n} = the number; {total} = the number of camps).
+     */
+    photoOf?: string | null;
+    close?: string | null;
+    previous?: string | null;
+    next?: string | null;
+  };
+  policy?: {
+    contents?: string | null;
+    /**
+     * Keep {date} as written — the site fills it in ({date} = the date).
+     */
+    updated?: string | null;
+  };
+  trust?: {
+    registration?: string | null;
+    pan?: string | null;
+    eightyG?: string | null;
+    /**
+     * Keep {date} as written — the site fills it in ({date} = the date).
+     */
+    since?: string | null;
+  };
+  accessibility?: {
+    /**
+     * Keep {siteName} as written — the site fills it in ({siteName} = the trust's name).
+     */
+    homeLink?: string | null;
+    mainNav?: string | null;
+    openMenu?: string | null;
+    closeMenu?: string | null;
+    menu?: string | null;
+    breadcrumb?: string | null;
+    liveUpdates?: string | null;
+    causes?: string | null;
+    explore?: string | null;
+    footerCauses?: string | null;
+    waysToPay?: string | null;
+    /**
+     * Keep {shortName}, {platform} as written — the site fills them in ({shortName} = the short name; {platform} = the social network).
+     */
+    social?: string | null;
+    whatsappButton?: string | null;
+    whatsappClose?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  identity?:
+    | T
+    | {
+        siteName?: T;
+        shortName?: T;
+        homeTitle?: T;
+        description?: T;
+        alternateNames?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        foundingYear?: T;
+        twitterHandle?: T;
+        logo?: T;
+        mark?: T;
+        shareImage?: T;
+        areaServed?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        knowsAbout?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+      };
   heroEyebrow?: T;
   heroHeadlineLines?:
     | T
@@ -950,8 +1905,6 @@ export interface SiteSettingsSelect<T extends boolean = true> {
       };
   heroIntro?: T;
   heroImage?: T;
-  heroInsetImage?: T;
-  heroInsetCaption?: T;
   impactStats?:
     | T
     | {
@@ -1037,6 +1990,744 @@ export interface LiveUpdatesSelect<T extends boolean = true> {
         label?: T;
         icon?: T;
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-layout_select".
+ */
+export interface SiteLayoutSelect<T extends boolean = true> {
+  nav?:
+    | T
+    | {
+        links?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              showCauses?: T;
+              id?: T;
+            };
+        mobileLinks?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        donate?: T;
+        mobileDonate?: T;
+        call?: T;
+      };
+  footer?:
+    | T
+    | {
+        about?: T;
+        wordmarkTop?: T;
+        wordmarkBottom?: T;
+        exploreHeading?: T;
+        exploreLinks?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        causesHeading?: T;
+        contactHeading?: T;
+        registrationLabel?: T;
+        panLabel?: T;
+        eightyGLabel?: T;
+        secureLead?: T;
+        secureText?: T;
+        netBanking?: T;
+        policyLinks?:
+          | T
+          | {
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+        copyright?: T;
+      };
+  whatsapp?:
+    | T
+    | {
+        greeting?: T;
+        bubbleLead?: T;
+        bubbleText?: T;
+        startChat?: T;
+      };
+  donateBar?: T;
+  skipToContent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage-sections_select".
+ */
+export interface HomepageSectionsSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        badges?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        amountLegend?: T;
+        otherAmount?: T;
+        photosCaption?: T;
+        nextCamp?: T;
+        seeRegister?: T;
+        citizensOnly?: T;
+      };
+  comingUp?:
+    | T
+    | {
+        eyebrow?: T;
+        title?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        intro?: T;
+        alsoComingUp?: T;
+      };
+  causes?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+      };
+  register?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        browseAll?: T;
+        dateColumn?: T;
+        campColumn?: T;
+        nextLabel?: T;
+        upcomingCount?: T;
+        seeDetails?: T;
+        seeDates?: T;
+        noDateYet?: T;
+        notifyPrompt?: T;
+        notifyCta?: T;
+      };
+  appeal?:
+    | T
+    | {
+        eyebrow?: T;
+        raised?: T;
+        towardsGoal?: T;
+        soFar?: T;
+        goalReached?: T;
+        donors?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        daysLeft?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        lastDay?: T;
+        donate?: T;
+        share?: T;
+        progressLabel?: T;
+      };
+  give?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        watermark?: T;
+        pickerLegend?: T;
+        anyAmount?: T;
+        taxNote?: T;
+      };
+  voices?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        supportersLabel?: T;
+        supporterSince?: T;
+      };
+  involved?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        volunteer?:
+          | T
+          | {
+              image?: T;
+              eyebrow?: T;
+              title?: T;
+              text?: T;
+              cta?: T;
+              link?: T;
+              whatsappMessage?: T;
+            };
+        csr?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              cta?: T;
+              link?: T;
+              whatsappMessage?: T;
+            };
+        notify?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              cta?: T;
+            };
+      };
+  faq?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        writeToUs?: T;
+      };
+  finalCta?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        text?: T;
+        donate?: T;
+        volunteer?: T;
+        volunteerLink?: T;
+        nextComingUp?: T;
+        nextCamp?: T;
+        dateBeingFixed?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "page-text_select".
+ */
+export interface PageTextSelect<T extends boolean = true> {
+  events?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        countLine?: T;
+        byCauseLabel?: T;
+        pastLabel?: T;
+        yearCount?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+      };
+  event?:
+    | T
+    | {
+        notFoundTitle?: T;
+        metaTitle?: T;
+        metaDescription?: T;
+        dateRange?: T;
+        highlightsTitle?: T;
+        partnersTitle?: T;
+        galleryTitle?: T;
+        helpLabel?: T;
+        helpEyebrow?: T;
+        helpText?: T;
+        helpDonate?: T;
+        helpNote?: T;
+        share?: T;
+        seeAllPhotos?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        photoCount?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        detailsLabel?: T;
+        detailsTitle?: T;
+        when?: T;
+        where?: T;
+        directions?: T;
+        causeLabel?: T;
+        peopleServed?: T;
+        expected?: T;
+        moreLabel?: T;
+        moreInCause?: T;
+        allInCause?: T;
+        newer?: T;
+        older?: T;
+        wholeRegister?: T;
+      };
+  causes?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+      };
+  cause?:
+    | T
+    | {
+        notFoundTitle?: T;
+        metaTitle?: T;
+        campCount?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        since?: T;
+        comingUp?: T;
+        give?: T;
+        seeCamps?: T;
+        campsTitle?: T;
+        othersLabel?: T;
+        othersTitle?: T;
+      };
+  about?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        image?: T;
+        imageCaption?: T;
+        name?:
+          | T
+          | {
+              hindi?: T;
+              meaning?: T;
+            };
+        believe?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              text?: T;
+              quote?: T;
+              closing?: T;
+            };
+        numbers?:
+          | T
+          | {
+              title?: T;
+              registerStat?: T;
+            };
+        accountable?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              text?: T;
+              cta?: T;
+            };
+      };
+  volunteer?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        image?: T;
+        rolesTitle?: T;
+        roles?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+              id?: T;
+            };
+        formTitle?: T;
+        formIntro?: T;
+        stepsTitle?: T;
+        steps?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        trainingEyebrow?: T;
+        trainingCamp?: T;
+        trainingCta?: T;
+      };
+  csr?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        registerCta?: T;
+        call?: T;
+        why?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              paragraphs?:
+                | T
+                | {
+                    value?: T;
+                    id?: T;
+                  };
+            };
+        ways?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              adoptEyebrow?: T;
+              adoptTitle?: T;
+              adoptText?: T;
+              adoptCount?:
+                | T
+                | {
+                    one?: T;
+                    other?: T;
+                  };
+              payrollTitle?: T;
+              payrollText?: T;
+              teamTitle?: T;
+              teamText?: T;
+            };
+        facts?:
+          | T
+          | {
+              title?: T;
+              text?: T;
+            };
+        form?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              text?: T;
+            };
+      };
+  contact?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        callLabel?: T;
+        whatsappLabel?: T;
+        whatsappCta?: T;
+        emailLabel?: T;
+        officeLabel?: T;
+        directions?: T;
+        directionsLabel?: T;
+        formTitle?: T;
+        formIntro?: T;
+        schemaName?: T;
+      };
+  notFound?:
+    | T
+    | {
+        metaTitle?: T;
+        eyebrow?: T;
+        title?: T;
+        text?: T;
+        home?: T;
+        donate?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "policy-text_select".
+ */
+export interface PolicyTextSelect<T extends boolean = true> {
+  privacy?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        updated?: T;
+        linkText?: T;
+        rightsPhone?: T;
+        sections?:
+          | T
+          | {
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+      };
+  terms?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        breadcrumb?: T;
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        updated?: T;
+        linkText?: T;
+        sections?:
+          | T
+          | {
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-text_select".
+ */
+export interface FormTextSelect<T extends boolean = true> {
+  common?:
+    | T
+    | {
+        requiredMark?: T;
+        optional?: T;
+        choose?: T;
+        phonePlaceholder?: T;
+        sending?: T;
+        fixErrors?: T;
+        unavailable?: T;
+        unavailableCta?: T;
+        orWhatsapp?: T;
+        privacyNote?: T;
+        thanksTitle?: T;
+        spamTrap?: T;
+      };
+  errors?:
+    | T
+    | {
+        name?: T;
+        phone?: T;
+        phoneMissing?: T;
+        email?: T;
+        workEmail?: T;
+        pincode?: T;
+        date?: T;
+        company?: T;
+        address?: T;
+        phoneOrEmail?: T;
+        message?: T;
+      };
+  volunteer?:
+    | T
+    | {
+        submit?: T;
+        thanks?: T;
+        whatsappMessage?: T;
+        name?: T;
+        phone?: T;
+        email?: T;
+        dateOfBirth?: T;
+        address?: T;
+        pincode?: T;
+        reference?: T;
+        referenceHint?: T;
+        occupation?: T;
+        student?: T;
+        job?: T;
+        business?: T;
+        education?: T;
+        educationOptions?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        specialisation?: T;
+        specialisationHint?: T;
+        educationStatus?: T;
+        pursuing?: T;
+        completed?: T;
+        message?: T;
+      };
+  csr?:
+    | T
+    | {
+        submit?: T;
+        thanks?: T;
+        whatsappMessage?: T;
+        name?: T;
+        company?: T;
+        phone?: T;
+        email?: T;
+        address?: T;
+        message?: T;
+        messageHint?: T;
+      };
+  contact?:
+    | T
+    | {
+        submit?: T;
+        thanks?: T;
+        whatsappMessage?: T;
+        name?: T;
+        phone?: T;
+        phoneHint?: T;
+        email?: T;
+        message?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "labels_select".
+ */
+export interface LabelsSelect<T extends boolean = true> {
+  common?:
+    | T
+    | {
+        home?: T;
+        donateAmount?: T;
+        donateNow?: T;
+      };
+  camp?:
+    | T
+    | {
+        directions?: T;
+        addToCalendar?: T;
+        sendOnWhatsapp?: T;
+        highlights?: T;
+        helpFund?: T;
+        volunteer?: T;
+        shareLead?: T;
+        shareCta?: T;
+        entryFree?: T;
+        endsOn?: T;
+        campCount?:
+          | T
+          | {
+              one?: T;
+              other?: T;
+            };
+        onRegister?: T;
+        seeCause?: T;
+        countdownDays?: T;
+        countdownTomorrow?: T;
+        countdownToday?: T;
+        countdownOnNow?: T;
+      };
+  ticker?:
+    | T
+    | {
+        live?: T;
+        updated?: T;
+        latestCamp?: T;
+        campsSince?: T;
+        campsTotal?: T;
+      };
+  messages?:
+    | T
+    | {
+        notifyNextCamp?: T;
+        volunteerAtCamp?: T;
+        shareCamp?: T;
+        shareAppeal?: T;
+        calendarDetails?: T;
+        calendarTime?: T;
+      };
+  gallery?:
+    | T
+    | {
+        showAll?: T;
+        viewer?: T;
+        photoOf?: T;
+        close?: T;
+        previous?: T;
+        next?: T;
+      };
+  policy?:
+    | T
+    | {
+        contents?: T;
+        updated?: T;
+      };
+  trust?:
+    | T
+    | {
+        registration?: T;
+        pan?: T;
+        eightyG?: T;
+        since?: T;
+      };
+  accessibility?:
+    | T
+    | {
+        homeLink?: T;
+        mainNav?: T;
+        openMenu?: T;
+        closeMenu?: T;
+        menu?: T;
+        breadcrumb?: T;
+        liveUpdates?: T;
+        causes?: T;
+        explore?: T;
+        footerCauses?: T;
+        waysToPay?: T;
+        social?: T;
+        whatsappButton?: T;
+        whatsappClose?: T;
       };
   updatedAt?: T;
   createdAt?: T;

@@ -13,19 +13,21 @@
   --font-body: var(--font-inter), var(--font-hindi), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-// ── Brand ─────────────────────────────────────────────────────────
-// Primary buttons (Save, Publish, Create) in the logo's crimson.
-.btn--style-primary {
-  --bg-color: var(--sm-crimson);
-  --hover-bg: var(--sm-crimson-deep);
-  --color: #fff;
-  --hover-color: #fff;
+// Crimson text that stays readable on the dark theme.
+:root {
+  --sm-crimson-text: var(--sm-crimson);
 }
 
+html[data-theme="dark"] {
+  --sm-crimson-text: #ff7d97;
+}
+
+// ── Brand ─────────────────────────────────────────────────────────
 // Page titles in the website's display face.
 .doc-header__title,
 .list-header__title,
-.global-edit .doc-header__title {
+.global-edit .doc-header__title,
+.dashboard__label {
   font-family: var(--sm-font-display);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -36,41 +38,233 @@
   background: var(--sm-crimson);
 }
 
+// ── Logo lockup (src/payload/components/AdminLogo.tsx) ────────────
+// The round mark + the trust's name as live text, so it reads in light and dark.
+.sm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--theme-text);
+  text-decoration: none;
+
+  &__mark {
+    display: block;
+    flex-shrink: 0;
+    border-radius: 999px;
+  }
+
+  &__words {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.05;
+  }
+
+  &__name {
+    display: block;
+    font-family: var(--sm-font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--theme-text);
+  }
+
+  &__sub {
+    display: block;
+    margin-top: 0.2rem;
+    font-family: var(--font-body);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--theme-elevation-500);
+  }
+
+  &__tag {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sm-crimson-text);
+  }
+
+  // Sign-in and password screens.
+  &--large {
+    gap: 1rem;
+
+    .sm-brand__name {
+      font-size: 2rem;
+    }
+
+    .sm-brand__sub {
+      margin-top: 0.35rem;
+      font-size: 0.74rem;
+    }
+  }
+
+  // Header, top-left.
+  &--header {
+    gap: 0.6rem;
+
+    .sm-brand__name {
+      font-size: 1.05rem;
+    }
+  }
+}
+
+// Payload sizes the header's home link as an 18px icon; make room for the lockup.
+.step-nav .step-nav__home {
+  width: auto;
+  height: auto;
+  padding-right: 0.25rem;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: none;
+
+    .sm-brand__name {
+      color: var(--sm-crimson-text);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .sm-brand--header .sm-brand__words {
+    display: none;
+  }
+}
+
+// Top of the side menu (NavBrand).
+.sm-nav-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--theme-elevation-100);
+
+  &__site {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 0.35rem;
+    min-height: 36px;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--theme-elevation-150);
+    color: var(--theme-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      border-color 150ms ease,
+      color 150ms ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--sm-crimson);
+      color: var(--sm-crimson-text);
+    }
+  }
+}
+
+// ── Buttons ───────────────────────────────────────────────────────
+// Rounded like the website's. Split buttons (a button + its menu arrow) keep
+// Payload's joined corners, so only stand-alone buttons become pills.
+.btn--withoutPopup.btn--style-primary,
+.btn--withoutPopup.btn--style-secondary,
+.btn--style-pill {
+  border-radius: 999px;
+}
+
+// Primary (Save, Publish, Create, Sign in): the logo's crimson.
+.btn--style-primary {
+  --bg-color: var(--sm-crimson);
+  --hover-bg: var(--sm-crimson-deep);
+  --color: #fff;
+  --hover-color: #fff;
+  --btn-font-weight: 600;
+  box-shadow: 0 10px 22px -12px rgb(200 16 58 / 0.65);
+
+  &.btn--disabled {
+    --bg-color: var(--theme-elevation-150);
+    --hover-bg: var(--theme-elevation-150);
+    --color: var(--theme-elevation-500);
+    --hover-color: var(--theme-elevation-500);
+    box-shadow: none;
+  }
+}
+
+// Secondary (Save draft, Cancel): an outline that turns crimson on hover.
+.btn--style-secondary {
+  --btn-border: 1px solid var(--theme-elevation-250);
+  --hover-btn-border: 1px solid var(--sm-crimson);
+  --hover-color: var(--sm-crimson-text);
+  --btn-font-weight: 600;
+}
+
+// Pills ("Create New" beside a list's title): soft crimson, solid on hover.
+.btn--style-pill {
+  --bg-color: color-mix(in srgb, var(--sm-crimson) 12%, transparent);
+  --color: var(--sm-crimson-text);
+  --hover-bg: var(--sm-crimson);
+  --hover-color: #fff;
+  --btn-font-weight: 600;
+}
+
+// A clear keyboard focus ring on every button and link-button.
+.btn:focus-visible,
+.sarvamangal-logout:focus-visible,
+.sm-nav-brand__site:focus-visible,
+.sm-dash__site:focus-visible {
+  outline: 2px solid var(--sm-crimson);
+  outline-offset: 2px;
+}
+
 // ── Labelled "Log out" buttons (src/payload/components/LogoutButton.tsx) ──
 .sarvamangal-logout {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  border-radius: var(--style-radius-m);
-  border: 1px solid var(--theme-elevation-150);
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--theme-elevation-200);
   color: var(--theme-elevation-800);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
   text-decoration: none;
   transition:
-    background-color 150ms ease,
+    border-color 150ms ease,
     color 150ms ease;
 
   &:hover,
   &:focus-visible {
-    background-color: var(--theme-elevation-100);
-    color: var(--theme-elevation-1000);
+    border-color: var(--sm-crimson);
+    color: var(--sm-crimson-text);
   }
 
   &--header {
-    padding: 0.4rem 0.75rem;
+    min-height: 36px;
+    padding: 0 0.95rem;
     font-size: 0.8125rem;
   }
 
   &--sidebar {
-    padding: 0.5rem 0.875rem;
+    min-height: 40px;
+    padding: 0 1rem;
   }
 }
 
-// ── Sign-in screen ────────────────────────────────────────────────
-// A camp photo under an ink wash, with the form on a card.
-.template-minimal:has(.login__brand) {
+// ── Sign-in screens ───────────────────────────────────────────────
+// A camp photo under an ink wash, with the form on a card. Covers sign-in,
+// forgot/reset password, and the very first "create your account" screen.
+.template-minimal:has(.login__brand),
+.template-minimal:has(.create-first-user),
+.template-minimal:has(.forgot-password),
+.template-minimal:has(.reset-password) {
   background:
     linear-gradient(160deg, rgb(23 25 59 / 0.92), rgb(23 25 59 / 0.72)),
     url("/images/children-notebook-distribution.jpg") center / cover no-repeat;
@@ -83,17 +277,48 @@
   }
 
   .login__brand {
-    margin-bottom: 1.25rem;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.75rem;
   }
+
+  // The sign-in button fills the card, like the website's main asks.
+  .form-submit .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  a:not(.btn) {
+    color: var(--sm-crimson-text);
+    text-decoration-color: color-mix(in srgb, var(--sm-crimson) 40%, transparent);
+    text-underline-offset: 3px;
+  }
+}
+
+// The first-account screen has no logo slot: the mark goes above its heading.
+.create-first-user::before {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 1.25rem;
+  background: url("/brand/sarvamangal-mark.png") center / contain no-repeat;
+}
+
+.create-first-user > h1 {
+  font-family: var(--sm-font-display);
+  font-weight: 600;
 }
 
 .sm-login-intro {
   margin-bottom: 1.5rem;
+  text-align: center;
 
   &__title {
     margin: 0;
     font-family: var(--sm-font-display);
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     line-height: 1.15;
     font-weight: 600;
   }
@@ -101,6 +326,26 @@
   &__text {
     margin: 0.5rem 0 0;
     color: var(--theme-elevation-500);
+  }
+}
+
+.sm-login-footer {
+  margin: 0;
+  text-align: center;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 44px;
+    color: var(--theme-elevation-600);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--sm-crimson-text);
+    }
   }
 }
 
@@ -120,7 +365,7 @@
 
   &__eyebrow {
     margin: 0;
-    color: var(--sm-crimson);
+    color: var(--sm-crimson-text);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.14em;
@@ -242,7 +487,7 @@
     margin-bottom: 0.4rem;
     border-radius: 12px;
     background: color-mix(in srgb, var(--sm-crimson) 10%, transparent);
-    color: var(--sm-crimson);
+    color: var(--sm-crimson-text);
   }
 
   &__action-title {
@@ -314,7 +559,7 @@
     text-transform: uppercase;
 
     svg {
-      color: var(--sm-crimson);
+      color: var(--sm-crimson-text);
     }
   }
 
@@ -336,7 +581,7 @@
   &__link {
     display: inline-block;
     margin-top: 0.7rem;
-    color: var(--sm-crimson);
+    color: var(--sm-crimson-text);
     font-weight: 600;
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, var(--sm-crimson) 35%, transparent);
@@ -352,7 +597,7 @@
     padding-left: 1.1rem;
 
     a {
-      color: var(--sm-crimson);
+      color: var(--sm-crimson-text);
       font-weight: 500;
     }
   }
@@ -380,12 +625,29 @@
     text-decoration: none;
 
     svg {
-      color: var(--sm-crimson);
+      color: var(--sm-crimson-text);
     }
 
     &:hover {
       border-color: var(--theme-elevation-400);
       background: var(--theme-elevation-50);
     }
+  }
+}
+
+// ── Payload's section cards on the dashboard ("All sections") ─────
+.dashboard .card {
+  border-radius: 14px;
+  transition:
+    border-color 150ms ease,
+    box-shadow 200ms ease;
+
+  &:hover {
+    box-shadow: 0 18px 30px -24px rgb(0 0 0 / 0.45);
+  }
+
+  .card__title {
+    font-family: var(--sm-font-display);
+    font-weight: 600;
   }
 }

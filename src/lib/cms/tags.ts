@@ -14,6 +14,7 @@ export const CMS_TAGS = {
   faq: "faq",
   appeal: "appeal",
   liveUpdates: "liveUpdates",
+  copy: "copy",
 } as const;
 
 export type CmsTag = (typeof CMS_TAGS)[keyof typeof CMS_TAGS];

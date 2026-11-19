@@ -5,17 +5,12 @@ import { convertLexicalToHTML } from "@payloadcms/richtext-lexical/html";
 import { getPayload } from "payload";
 
 import { indiaDate } from "@/lib/format";
-import type {
-  Cause as PCause,
-  Event as PEvent,
-  FundraisingAppeal as PAppeal,
-  LiveUpdate as PLiveUpdates,
-  Media as PMedia,
-  SiteSetting as PSiteSettings,
-} from "@/payload-types";
+import type { Cause as PCause, Event as PEvent, Media as PMedia } from "@/payload-types";
 
+import { COPY_GLOBALS, defaultCopy, defaultIdentity } from "../copy/defaults";
+import { mergeCopy } from "../copy/merge";
 import { seedSettings } from "../seed/content";
-import type { Appeal, CampEvent, Cause, ContentSource, ImageRef, LiveUpdates, SiteSettings } from "../types";
+import type { Appeal, CampEvent, Cause, ContentSource, ImageRef, LiveUpdates, SiteCopy, SiteSettings } from "../types";
 
 /**
  * Payload → site types, through the Local API (direct database access, no
@@ -60,21 +55,20 @@ function causeRef(cause: number | PCause | null | undefined) {
 }
 
 async function siteSettings(): Promise<SiteSettings> {
-  const raw = (await (await payload()).findGlobal({ slug: "site-settings", depth: 1 })) as PSiteSettings;
+  const raw = await (await payload()).findGlobal({ slug: "site-settings", depth: 1 });
   const s = seedSettings;
   const c = raw.contact ?? {};
   const l = raw.legal ?? {};
   const q = raw.notebookQuote ?? {};
 
   return {
+    identity: mergeCopy(defaultIdentity, raw.identity),
     hero: {
       eyebrow: pick(raw.heroEyebrow, s.hero.eyebrow),
       headlineLines: pick(raw.heroHeadlineLines?.map((h) => h.line), s.hero.headlineLines),
       highlightWords: pick(raw.heroHighlightWords?.map((h) => h.word), s.hero.highlightWords),
       intro: pick(raw.heroIntro, s.hero.intro),
       image: toImage(raw.heroImage, s.hero.image.alt) ?? s.hero.image,
-      insetImage: toImage(raw.heroInsetImage, s.hero.insetImage?.alt ?? "") ?? s.hero.insetImage,
-      insetCaption: pick(raw.heroInsetCaption, s.hero.insetCaption),
     },
     impactStats: pick(
       raw.impactStats?.map(({ value, label }) => ({ value, label })),
@@ -159,16 +153,31 @@ function toEvent(e: PEvent): CampEvent | null {
   };
 }
 
+// Drafts are being prepared in /admin and aren't on the website yet.
+const published = { _status: { equals: "published" } } as const;
+
+/** Every list (homepage, register, causes, sitemap) needs the facts, not the write-up or gallery. */
 async function events(): Promise<CampEvent[]> {
   const { docs } = await (await payload()).find({
     collection: "events",
     depth: 1,
     pagination: false,
     sort: "-startDate",
-    // Drafts are being prepared in /admin and aren't on the website yet.
-    where: { _status: { equals: "published" } },
+    where: published,
+    select: { body: false, gallery: false },
   });
-  return docs.map(toEvent).filter((e): e is CampEvent => e !== null);
+  return docs.map((doc) => toEvent(doc as PEvent)).filter((e): e is CampEvent => e !== null);
+}
+
+async function event(slug: string): Promise<CampEvent | null> {
+  const { docs } = await (await payload()).find({
+    collection: "events",
+    depth: 1,
+    limit: 1,
+    pagination: false,
+    where: { and: [published, { slug: { equals: slug } }] },
+  });
+  return docs[0] ? toEvent(docs[0]) : null;
 }
 
 async function testimonials() {
@@ -179,7 +188,6 @@ async function testimonials() {
     name: t.name,
     role: t.role ?? "",
     supporterSince: t.supporterSince ?? undefined,
-    causeSlug: causeRef(t.cause)?.slug,
     photo: toImage(t.photo, t.name),
   }));
 }
@@ -212,7 +220,8 @@ async function faqs() {
 
 async function appeal(): Promise<Appeal | null> {
   // depth 2: the cause's own photo is the fallback image.
-  const raw = (await (await payload()).findGlobal({ slug: "fundraising-appeal", depth: 2 })) as PAppeal;
+  // Not publicly readable (a switched-off appeal may hold drafts); the site reads it here, on the server.
+  const raw = await (await payload()).findGlobal({ slug: "fundraising-appeal", depth: 2, overrideAccess: true });
   if (!raw.enabled || !raw.title) return null;
 
   const measure = raw.measure === "items" ? "items" : "money";
@@ -239,21 +248,31 @@ async function appeal(): Promise<Appeal | null> {
 }
 
 async function liveUpdates(): Promise<LiveUpdates> {
-  const raw = (await (await payload()).findGlobal({ slug: "live-updates", depth: 0 })) as PLiveUpdates;
+  const raw = await (await payload()).findGlobal({ slug: "live-updates", depth: 0 });
   const counters = (raw.counters ?? [])
     .filter((c) => c.label?.trim() && typeof c.value === "number")
     .map((c) => ({ value: c.value, plus: Boolean(c.plus), label: c.label.trim(), icon: c.icon }));
   return { counters, updatedAt: counters.length > 0 ? toDate(raw.updatedAt) : undefined };
 }
 
+/** The four "Website text" globals, each laid over its part of the built-in copy. */
+async function copy(): Promise<SiteCopy> {
+  const p = await payload();
+  const keys = Object.keys(COPY_GLOBALS) as (keyof SiteCopy)[];
+  const docs = await Promise.all(keys.map((key) => p.findGlobal({ slug: COPY_GLOBALS[key], depth: 1 })));
+  return Object.fromEntries(keys.map((key, i) => [key, mergeCopy(defaultCopy[key], docs[i])])) as SiteCopy;
+}
+
 export const payloadSource: ContentSource = {
   siteSettings,
   causes,
   events,
+  event,
   testimonials,
   supporters,
   donationTiers,
   faqs,
   appeal,
   liveUpdates,
+  copy,
 };

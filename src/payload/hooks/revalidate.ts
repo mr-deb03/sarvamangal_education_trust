@@ -1,6 +1,7 @@
 import { revalidateTag } from "next/cache";
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook, GlobalAfterChangeHook } from "payload";
 
+import { COPY_GLOBALS } from "@/lib/cms/copy/defaults";
 import { CMS_TAGS, type CmsTag } from "@/lib/cms/tags";
 
 /**
@@ -29,10 +30,11 @@ const BY_GLOBAL: Record<string, CmsTag[]> = {
   "site-settings": [CMS_TAGS.siteSettings],
   "fundraising-appeal": [CMS_TAGS.appeal],
   "live-updates": [CMS_TAGS.liveUpdates],
+  ...Object.fromEntries(Object.values(COPY_GLOBALS).map((slug) => [slug, [CMS_TAGS.copy]])),
 };
 
-function refresh(tags: CmsTag[] | undefined) {
-  for (const tag of tags ?? [CMS_TAGS.all]) {
+function expire(tags: CmsTag[]) {
+  for (const tag of tags) {
     try {
       revalidateTag(tag, { expire: 0 });
     } catch {
@@ -41,14 +43,33 @@ function refresh(tags: CmsTag[] | undefined) {
   }
 }
 
+/**
+ * Expire now, so the next page load is fresh.
+ *
+ * Known, accepted gap: Payload runs afterChange inside the database transaction,
+ * a few milliseconds before it commits, so a visitor loading the page in exactly
+ * that window could re-cache the old content until the next save. A second
+ * expire in `after()` closes it but made the editor's first reload come back
+ * stale (tested Nov 2026), which is worse for the people using /admin.
+ */
+function refresh(tags: CmsTag[] | undefined) {
+  expire(tags ?? [CMS_TAGS.all]);
+}
+
+type WithStatus = { _status?: string | null } | null | undefined;
+
+/** A draft save of something that isn't on the site doesn't change the site. */
+const isDraftOnly = (doc: WithStatus, previousDoc: WithStatus) =>
+  doc?._status === "draft" && previousDoc?._status !== "published";
+
 export function revalidateCollection(): {
   afterChange: CollectionAfterChangeHook[];
   afterDelete: CollectionAfterDeleteHook[];
 } {
   return {
     afterChange: [
-      ({ doc, req, collection }) => {
-        if (!req.context.disableRevalidate) refresh(BY_COLLECTION[collection.slug]);
+      ({ doc, previousDoc, req, collection }) => {
+        if (!req.context.disableRevalidate && !isDraftOnly(doc, previousDoc)) refresh(BY_COLLECTION[collection.slug]);
         return doc;
       },
     ],

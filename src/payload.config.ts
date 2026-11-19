@@ -13,6 +13,7 @@ import { Events } from "./payload/collections/Events";
 import { DonationTiers, Faqs, Supporters, Testimonials } from "./payload/collections/Homepage";
 import { Media } from "./payload/collections/Media";
 import { Users } from "./payload/collections/Users";
+import { copyGlobals } from "./payload/copy/globals";
 import { FundraisingAppeal } from "./payload/globals/FundraisingAppeal";
 import { LiveUpdates } from "./payload/globals/LiveUpdates";
 import { SiteSettings } from "./payload/globals/SiteSettings";
@@ -25,6 +26,13 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
  *   file:./local.db     → SQLite file, for local dev without Postgres
  */
 const databaseUri = process.env.DATABASE_URI ?? "";
+const secret = process.env.PAYLOAD_SECRET ?? "";
+
+// Without a secret, admin logins can't be signed safely. Fail loudly instead of
+// running with an empty one. (No database = no admin = no secret needed.)
+if (databaseUri && !secret) {
+  throw new Error("PAYLOAD_SECRET is not set. Generate one: node -e \"console.log(crypto.randomBytes(32).toString('hex'))\"");
+}
 
 const db = databaseUri.startsWith("file:")
   ? sqliteAdapter({ client: { url: databaseUri } })
@@ -48,6 +56,9 @@ export default buildConfig({
       // Admin home: everyday tasks and what's on the site now, above Payload's section cards.
       beforeDashboard: ["/payload/components/Dashboard#TaskDashboard"],
       beforeLogin: ["/payload/components/LoginIntro#LoginIntro"],
+      afterLogin: ["/payload/components/LoginIntro#LoginFooter"],
+      // The trust's logo and a link to the live site at the top of the side menu.
+      beforeNavLinks: ["/payload/components/AdminLogo#NavBrand"],
       logout: { Button: "/payload/components/LogoutButton#LogoutButton" },
       graphics: {
         Logo: "/payload/components/AdminLogo#AdminLogo",
@@ -56,10 +67,18 @@ export default buildConfig({
     },
     dateFormat: "d MMM yyyy",
   },
+  // Plain words for the trust's volunteers.
+  i18n: {
+    translations: {
+      en: { authentication: { login: "Sign in", logOut: "Log out" } },
+    },
+  },
   collections: [Events, Causes, Media, DonationTiers, Testimonials, Supporters, Faqs, Enquiries, Users],
-  globals: [SiteSettings, FundraisingAppeal, LiveUpdates],
+  globals: [SiteSettings, FundraisingAppeal, LiveUpdates, ...copyGlobals],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET ?? "",
+  secret,
+  // The site reads content through the Local API; nothing uses GraphQL.
+  graphQL: { disable: true },
   typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },
   db,
   sharp,

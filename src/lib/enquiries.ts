@@ -3,6 +3,9 @@
 import config from "@payload-config";
 import { getPayload } from "payload";
 
+import { getCopy } from "@/lib/cms";
+import type { SiteCopy } from "@/lib/cms/types";
+
 /**
  * Saves the website's forms (volunteer, CSR, contact) into the Payload
  * "enquiries" collection, which the team reads in /admin → Inbox. Runs on the
@@ -40,30 +43,31 @@ const FIELDS = {
 
 type Values = Record<keyof typeof FIELDS, string>;
 
-function validate(kind: EnquiryKind, v: Values) {
+/** What needs fixing, field by field, in the words from Website text → Forms → What to fix. */
+function validate(kind: EnquiryKind, v: Values, say: SiteCopy["forms"]["errors"]) {
   const errors: Record<string, string> = {};
   const digits = v.phone.replace(/\D/g, "");
   const phoneOk = digits.length === 10 || (digits.length === 12 && digits.startsWith("91"));
 
-  if (v.name.length < 2) errors.name = "Enter your name.";
-  if (v.phone && !phoneOk) errors.phone = "Enter a 10-digit mobile number, like 98200 12345.";
-  if (v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errors.email = "Enter an email address like name@example.com.";
+  if (v.name.length < 2) errors.name = say.name;
+  if (v.phone && !phoneOk) errors.phone = say.phone;
+  if (v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errors.email = say.email;
 
   if (kind === "volunteer" || kind === "csr") {
-    if (!v.phone) errors.phone = "Enter your mobile number so we can call you.";
+    if (!v.phone) errors.phone = say.phoneMissing;
   }
   if (kind === "volunteer") {
-    if (v.pincode && !/^\d{6}$/.test(v.pincode)) errors.pincode = "Enter a 6-digit PIN code.";
-    if (v.dateOfBirth && Number.isNaN(Date.parse(v.dateOfBirth))) errors.dateOfBirth = "Enter a valid date.";
+    if (v.pincode && !/^\d{6}$/.test(v.pincode)) errors.pincode = say.pincode;
+    if (v.dateOfBirth && Number.isNaN(Date.parse(v.dateOfBirth))) errors.dateOfBirth = say.date;
   }
   if (kind === "csr") {
-    if (!v.email) errors.email = "Enter your work email.";
-    if (!v.company) errors.company = "Enter your company's name.";
-    if (!v.address) errors.address = "Enter your company's address.";
+    if (!v.email) errors.email = say.workEmail;
+    if (!v.company) errors.company = say.company;
+    if (!v.address) errors.address = say.address;
   }
   if (kind === "contact") {
-    if (!v.phone && !v.email) errors.phone = "Enter a phone number or an email address so we can reply.";
-    if (v.message.length < 5) errors.message = "Write your message.";
+    if (!v.phone && !v.email) errors.phone = say.phoneOrEmail;
+    if (v.message.length < 5) errors.message = say.message;
   }
   return errors;
 }
@@ -80,7 +84,8 @@ export async function submitEnquiry(_previous: EnquiryState, form: FormData): Pr
     Object.entries(FIELDS).map(([key, max]) => [key, get(key).slice(0, max)]),
   ) as Values;
 
-  const errors = validate(kind, values);
+  const copy = await getCopy();
+  const errors = validate(kind, values, copy.forms.errors);
   if (Object.keys(errors).length > 0) return { status: "invalid", errors, values };
 
   // No database (e.g. a deployment running on the built-in content): nowhere to save.

@@ -25,25 +25,23 @@ touching any UI.
     prebuilt from the CMS; new camps render on first visit), `/causes`, `/causes/[slug]`,
     old-WordPress-URL redirects (`redirects()` in `next.config.ts`, from `seed/events.ts`
     — the old site's 35 posts — plus the old events list and cause URLs), sitemap.
-  - Built Nov 2026 from the old site's text: `/about`, `/volunteer`, `/csr`, `/contact`
-    (each with its form → admin **Inbox**), `/privacy-policy`, `/terms` (no refund
-    policy page — owner's call; refund terms sit under Donations in /terms). Old URLs
-    (`/contact-us`, `/csr-with-us`, `/volunteer-form`, `/terms-and-conditions`,
-    `/refund-and-cancellation-policy`, `/blogs`) redirect in `next.config.ts`.
-  - Not built: `/blog` — no posts exist, so it's out of the menu and footer. Add it
-    back to `NAV_LINKS` / Footer `explore` / `ROUTES` / sitemap when posts are written.
-  - Camp pages carry the old WordPress pages' write-ups and galleries (Nov 2026):
-    `seed/event-stories.ts` (generated from the old pages — text unedited apart from
+  - Built Nov 2026 from the old site's text, every word in the CMS: `/about`,
+    `/volunteer`, `/csr`, `/contact` (each with its form → admin **Inbox**),
+    `/privacy-policy`, `/terms` (no refund policy page — owner's call; refund terms sit
+    under Donations in /terms). They're in the header/footer menus (Website text →
+    Header & footer), the Volunteer/CSR buttons link to them, and they're in `sitemap.ts`.
+  - Not built: `/blog`. The old site has 6 real articles (WordPress `posts`) to start from.
+    When it ships: add `ROUTES.blog`, its menu links in /admin, and the sitemap route.
+  - Camp pages carry the old WordPress pages' write-ups and galleries:
+    `seed/event-stories.ts` (generated from the old pages; text unedited apart from
     spacing and sentence-case section headings; photos from each page's gallery widget
-    only, 395 in all, not its decorative images, some of which were stock/news photos).
-    `npm run seed` fills an existing camp's write-up and gallery **only while they're
-    empty**, uploading the photos into Media — it never replaces what the team wrote.
-  - **Before launch:** seed photos (covers and galleries) point at
-    `sarvamangaleducationtrust.org/wp-content/uploads/…`. Once the domain serves this
-    app, those URLs die — production must run on Payload (photos in Media + Blob
-    storage), not on seed content.
-  - The old site also has 6 real blog articles (WordPress `posts`, e.g. "Career guidance
-    for students") — the source for `/blog` when it's built.
+    only, not its decorative images, some of which were stock/news photos). `npm run
+    seed` fills a camp's write-up and gallery **only while they're empty**, uploading the
+    photos into Media. Camp page: photo banner, details card, full-screen photo viewer
+    (`components/events/EventGallery.tsx`).
+  - **Before launch:** seed photos point at `sarvamangaleducationtrust.org/wp-content/…`.
+    Once the domain serves this app those URLs die — production must run on Payload
+    (photos in Media + Blob storage), not on seed content.
 
 ## Commands
 
@@ -54,8 +52,9 @@ npm run build             # production build — run before calling work done
 npm run lint
 npx tsc --noEmit
 
-npm run seed              # load the original content (35 events etc.) into Payload; skips existing
-npm run seed:force        # …and overwrite existing records with the seed values
+npm run seed              # load the original content (35 events, website text…) into Payload; skips existing
+                          # records, fills only empty fields (new text, camp write-ups/photos)
+npm run seed:force        # …and overwrite existing records with the seed values (script: src/payload/seed/index.ts)
                           # (scripts can't expire a running server's cache: restart `npm run dev`,
                           #  or save the record in /admin, to see script-loaded changes)
 npm run generate:types    # after changing a collection → src/payload-types.ts
@@ -83,7 +82,16 @@ Same set as HireHQ (`skills-lock.json`).
   + `cacheLife(...)`. Do not `fetch` CMS data anywhere else.
 - `new Date()` / `Date.now()` in render fails the prerender. Read the time only
   inside a `"use cache"` scope (see `getEventTimeline`, `CurrentYear` in Footer).
-- `revalidateTag(tag, "max")` — the one-argument form is deprecated.
+- `revalidateTag(tag, profile)` — the one-argument form is deprecated. Saves in /admin use
+  `{ expire: 0 }`: the next page load is fresh (verified). Don't add a second expire in
+  `after()` — it made the first reload stale. Draft-only camp saves don't revalidate.
+  (Accepted gap: the hook runs a few ms before Payload's transaction commits.)
+- Pages that read `params` (`causes/[slug]`, `events/[slug]`) render a sync frame and
+  await `params` inside `<Suspense>` (Partial Prefetching needs it for instant
+  navigation); `generateStaticParams` still prerenders every known slug in full.
+- `experimental.inlineCss` is on (prod only): the ~15 KB stylesheet ships inside the HTML.
+- Don't call `usePathname` in components the root layout renders unless they sit in
+  `<Suspense>` (it suspends for routes not in `generateStaticParams`).
 - `next/image`: `preload` replaces `priority`; every `quality` value must be in
   `images.qualities` in `next.config.ts`; remote hosts in `remotePatterns`.
 - Tailwind v4 runs through `@tailwindcss/turbopack` (no PostCSS config). Tokens live
@@ -93,25 +101,72 @@ Same set as HireHQ (`skills-lock.json`).
 ## Architecture
 
 ```
-src/app/(frontend)/      the website (root layout, pages, metadata files)
+src/app/(frontend)/      the website (root layout, pages, icons)
   [...slug]/page.tsx    catch-all → the site's not-found page (Phase 2: legacy redirects)
 src/app/(payload)/       generated by Payload — admin + REST/GraphQL routes. Local changes to keep:
                          layout.tsx and admin/[[...segments]]/{page,not-found}.tsx call
                          `await connection()` (+ `instant = false`) so the admin renders per
                          request under Cache Components; custom.scss styles the Log out buttons
 src/payload.config.ts    db adapter from DATABASE_URI (postgres:// or file: for SQLite)
-src/payload/             collections, globals/, hooks/revalidate, fields, access.ts (roles),
+src/payload/             collections, globals/, hooks/revalidate, fields, validators, access.ts (roles),
+                         copy/ (the "Website text" globals, generated from the copy defaults),
+                         seed/index.ts (`npm run seed`),
                          components/ (task dashboard, sign-in intro, admin logo,
                          labelled "Log out" buttons — header + sidebar)
 src/payload-types.ts     generated
-src/seed/index.ts        loads src/lib/cms/seed/* into Payload
+src/components/
+  layout/   header, footer, mobile menu (<dialog>), Donate bar, WhatsApp chat
+  ui/       buttons, breadcrumbs, Reveal, Rupees, LangText, Fill, WhenNear…
+  events/   RegisterEntry, RegisterList, UpcomingCamps (Ticket), Countdown — used on several pages
+  causes/   CauseGrid (homepage + /causes)
+  sections/ FinalCta, PhotoWall (WallTile) — shared closing section and wall tiles
+  home/     homepage-only sections
+  seo/      JsonLd, Analytics
 src/lib/cms/
-  index.ts        public API: getHomePageData, getEvents, getEventTimeline, getCauses…
+  index.ts        public API: getHomePageData, getCopy, getEvents, getEvent, getEventTimeline…
   types.ts        site-owned types (never leak Payload shapes into components)
+  options.ts      fixed choices shared by the admin and the site (ticker icons, social networks)
   tags.ts         cache tags (imported by the Payload hooks too)
+  copy/           defaults.ts (ALL website text + identity), merge.ts (CMS over defaults)
   payload/        Local API reads + mappers   ← used when DATABASE_URI is set
   seed/           real content from the old site  ← used otherwise
 ```
+
+### Website text (no naked strings)
+
+Every word on the site comes from the CMS. `src/lib/cms/copy/defaults.ts` holds all of
+it, and is the single source of truth for its shape:
+- The admin fields are **generated** from it (`src/payload/copy/fields.ts`): six
+  globals under **Website text** — Header & footer (`site-layout`), Homepage sections
+  (`homepage-sections`), Page text (`page-text`: events, camp, causes, about, volunteer,
+  CSR, contact, not-found), Policies (`policy-text`: privacy and terms, as sections),
+  Forms (`form-text`: labels, hints, error messages, thank-you notes — the server
+  action reads its error messages from here too), Buttons & labels (`labels`). Editors
+  and admins can edit them (owner's call, Nov 2026). Fields come pre-filled; clearing
+  one restores the built-in text (`mergeCopy`). `copyGlobal({ tabLabels })` names a tab
+  when the key alone would mislead ("csr" is the CSR page there, not the homepage card).
+- **Policy text** (`components/legal/PolicyText.tsx`): plain text, not rich text — a blank
+  line starts a paragraph, "- " a bullet, `**…**` bold; `{email}`, `{phone}`, `{address}`,
+  `{siteName}` come from Site settings, `{termsLink}` / `{privacyLink}` become links.
+  Section anchors come from the heading ("Donations & payments" → `#donations-and-payments`,
+  where the old refund-policy URL redirects — keep that heading).
+- **Site settings → Identity & SEO** (admins only): name, short name, homepage title,
+  description, alternate names, founding year, Twitter handle, logo, footer mark,
+  default share image, `areaServed`, `knowsAbout`. Replaces the old `SITE_NAME` /
+  `SITE_DESCRIPTION` constants; `src/lib/site.ts` keeps only `SITE_URL` and `ROUTES`.
+- `{tokens}` are filled by `fill()`; counts use `{ one, other }` + `plural()`
+  (`src/lib/format.ts`). `<Fill>` fills a token with an element (`<Rupees>`).
+- Components get `copy` (server) or just the strings they render (client leaves).
+- **Adding text:** add it to `defaults.ts` → use it (`copy.home.faq.title`) →
+  `npm run generate:types` → `npm run seed` (fills new, still-empty fields into the
+  saved globals; never overwrites an editor's text) → Postgres: `npm run migrate:create`.
+  **Changing** a default doesn't reach a saved global — edit it in /admin (or clear it).
+- **Enforced by lint**: `react/jsx-no-literals` + a `no-restricted-syntax` rule fail on
+  JSX text, string children in conditionals, and literal `aria-label` / `alt` /
+  `title` / `placeholder` in `src/components` and `src/app/(frontend)`.
+- Stays in code on purpose: route paths and `#anchors`, date/number formatting and
+  joiners (" · ", " – "), schema.org enums, decorative `alt=""`, payment-method logos
+  (tied to the Easebuzz account), the GA snippet.
 
 - **Events come from the CMS.** Editors add a camp at /admin → save → the
   collection's afterChange hook (`src/payload/hooks/revalidate.ts`) calls
@@ -153,13 +208,26 @@ src/lib/cms/
     globals keep edit history (Versions tab → "Restore this version").
   - **Dashboard** (`components/Dashboard.tsx`, `beforeDashboard`): quick actions, next /
     latest camp, drafts, admin links. **Look**: Fraunces + Inter loaded in
-    `(payload)/layout.tsx`, crimson primary buttons, branded sign-in (`custom.scss`).
-  - **Production DB, first migration** (`npm run migrate:create`): adding drafts and roles
+    `(payload)/layout.tsx`; `custom.scss` on Payload's theme variables (light + dark).
+    **Logo** (`components/AdminLogo.tsx`): the round mark + the trust's name as live text
+    (the logo PNG's black lettering vanishes in dark mode), name from Site settings →
+    Identity — large on sign-in (`graphics.Logo`), "Sarvamangal · Admin" top-left
+    (`graphics.Icon`; Payload's 18px home-link box is widened), and at the top of the
+    side menu with "View the website" (`beforeNavLinks`). **Buttons**: crimson primary,
+    outlined secondary, soft-crimson "Create New" pills — all rounded (split buttons keep
+    their joined corners); dark mode uses a lighter crimson for text (`--sm-crimson-text`).
+    Sign-in says "Sign in" (`i18n.translations`), has a "Back to the website" link
+    (`afterLogin`); the first-account and password screens share its photo and card.
+  - **Production DB, first migration** (`npm run migrate:create`): it must also create the
+  four Website text globals and the Site settings `identity_*` columns, and drop
+  `hero_inset_image` / `hero_inset_caption` (removed Nov 2026 — never rendered). Then
+  `npm run seed` to load the text. Adding drafts and roles
     gives existing rows `_status = 'draft'` and `role = 'editor'` — every camp would vanish
     and nobody would be an admin. Add to that migration:
     `UPDATE events SET _status = 'published';` and `UPDATE users SET role = 'admin';`
     (done by hand for the local DB, Nov 2026). The same migration creates the
-    `enquiries` table (pushed to the local DB in dev).
+    `enquiries` table and the `policy-text` / `form-text` globals (all pushed to the local
+    DB in dev, Nov 2026).
 - **Forms → Inbox** (collection `enquiries`, admin → Inbox): the volunteer, CSR and
   contact forms (`components/forms/EnquiryForms.tsx`, `useActionState`) post to the
   server action `submitEnquiry` in `src/lib/enquiries.ts`, which validates, drops bots
@@ -196,16 +264,35 @@ src/lib/cms/
   (`/health/`, `/education/`…) → `/causes/<slug>`; `/recent-events-sarvamangal-education-trust/` → `/events`.
 - Server-render all content. Animations never hide content from crawlers:
   `[data-reveal]` sections are visible by default and only hidden while
-  `RevealObserver` is actively watching them (`data-reveal-state="hidden"`).
+  `<Reveal>` (`components/ui/Reveal.tsx`) is actively watching them (`data-reveal-state="hidden"`).
   Never write CSS that hides `[data-reveal]` globally — a section React
   re-mounts (hot reload, navigation) would then stay blank.
 - Images: descriptive file names and alt text; `sizes` on every `next/image`.
 - Unknown camp/cause slugs render the not-found page with `noindex` (status 200 —
-  Cache Components streams the shell first); fine for search, don't fight it.
+  Cache Components streams the shell first); fine for search, don't fight it. Other
+  unknown URLs get Next's prerendered `/_not-found` (a real 404) — its wording
+  (Website text → Page text → Page not found) updates on the next deploy, not on save.
+- Every page sets a share image: its own (camp cover, cause photo) or Site settings →
+  default share image (`pageMetadata` always sends one). `robots.ts` allows
+  `/api/media/file/` so Google can fetch CMS photos. Camp pages are `og:type article`.
+- Old `/<slug>/` URLs (trailing slash) take two 308 hops (Next strips the slash first).
+  Fine for ranking; collapsing them needs `skipTrailingSlashRedirect` + Proxy — not worth it.
 - Speed (phones first): below-the-fold sections use `.defer-render`
   (`content-visibility: auto`); the testimonial wall is built in the browser on
   tablet+ only (`TestimonialWall.tsx`), never repeated in the HTML; `images.deviceSizes`
   / `imageSizes` are trimmed; header and Donate bar have no blur on phones.
+  Hero wall: the server sends the frame (ink tiles); the photos are added once the page
+  is interactive and wave in (`HeroWall` → `WallTile withImage`), so a dozen image
+  downloads stay off the phone's critical path (homepage mobile 87 → 90). Tiles are
+  `fetchPriority="low"` and `prefetch={false}`; the header logo is not preloaded. The footer is NOT `.defer-render` (content-visibility made axe misread
+  its contrast). The Donate bar fades (opacity), never slides — no layout shift.
+- **Fonts on the critical path: Inter + Fraunces only.** ₹ renders via `<Rupees>` in the
+  system font (Inter/Fraunces list ₹ in their latin-ext files without drawing it, which
+  cost ~140 KB). Small inline Hindi uses the system Devanagari font. Mukta draws only the
+  Give section's quote and watermark (`.hindi-type`), switched on by `<WhenNear>` when
+  that section approaches — otherwise Chrome fetches it with the page.
+- Lighthouse (Nov 2026, local prod build, mobile simulated): see the review notes — keep
+  mobile ≥ 90, CLS 0, a11y/BP/SEO 100. Measure the prod build, not `next dev`.
 
 ## Conventions
 
@@ -213,11 +300,13 @@ src/lib/cms/
   hex in components. `on-ink` utility for dark sections (also swaps the focus ring).
 - **No handwriting or script fonts** — the owner rejected them. Two faces only
   (owner's choice, Nov 2026): **Fraunces** (headings and titles) and **Inter**
-  (everything else). Mukta is loaded too, but only draws Hindi text and ₹ — neither
-  main face has Devanagari. Labels above titles use the
+  (everything else). Mukta is loaded too, only for the Give section's large Hindi type
+  (see Speed above); neither main face has Devanagari. Labels above titles use the
   `eyebrow` utility (small capitals). Hero key words get the crimson
   `.accent-underline` (an underline, not a highlight — owner's call).
 - Buttons are links: `ButtonLink` / `buttonClasses()`. Touch targets ≥ 44px.
+- Amounts: `<Rupees amount />`, never a hand-typed ₹. Hindi in CMS text: `<LangText>`
+  adds `lang="hi"` to Devanagari runs.
 - Every motion respects `prefers-reduced-motion` (`motion-safe:` or the CSS guards).
 - **Donations only from Indian citizens living in India** — no NRI or foreign payments
   (owner's rule, Nov 2026). Say so wherever someone is about to donate (hero give box,
@@ -225,8 +314,8 @@ src/lib/cms/
 - Copy: plain, specific, sentence case, Indian English ("programme", "neighbourhood").
   **Never invent numbers, costs or claims.** If a fact isn't in the CMS/seed,
   ask the user.
-- Fixed elements inside the header must be portalled to `<body>` (the header's
-  `backdrop-filter` traps `position: fixed` children) — see `MobileNav`.
+- Fixed elements inside the header must escape it (the header's `backdrop-filter` traps
+  `position: fixed` children): `MobileNav` is a modal `<dialog>`, which sits in the top layer.
 
 ## Content to confirm with the trust (before launch)
 

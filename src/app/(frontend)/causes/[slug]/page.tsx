@@ -3,13 +3,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
-import { RegisterEntry } from "@/components/home/CampRegister";
-import { UpcomingCamps } from "@/components/home/UpcomingCamps";
+import { RegisterList } from "@/components/events/RegisterList";
+import { UpcomingCamps } from "@/components/events/UpcomingCamps";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ButtonLink } from "@/components/ui/ButtonLink";
-import { getCause, getCauses, getEventTimeline, getSiteSettings } from "@/lib/cms";
+import { getCause, getCauses, getCopy, getEventTimeline, getSiteSettings } from "@/lib/cms";
+import { fill, plural } from "@/lib/format";
 import { breadcrumbJsonLd, clampDescription, eventJsonLd, pageMetadata } from "@/lib/seo";
 import { ROUTES } from "@/lib/site";
 import { donateHref, focalStyle } from "@/lib/utils";
@@ -21,34 +23,52 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/causes/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const cause = await getCause(slug);
-  if (!cause) return { title: "Cause not found", robots: { index: false } };
+  const [cause, { identity }, copy] = await Promise.all([getCause(slug), getSiteSettings(), getCopy()]);
+  const text = copy.pages.cause;
+  if (!cause) return { title: text.notFoundTitle, robots: { index: false } };
   return pageMetadata({
-    title: `${cause.title}: ${cause.tagline.toLowerCase()}`,
+    title: fill(text.metaTitle, { cause: cause.title, tagline: cause.tagline.toLowerCase() }),
     description: clampDescription(cause.summary),
     path: ROUTES.cause(cause.slug),
-    image: { src: cause.image.src, alt: cause.image.alt },
+    identity,
+    image: cause.image,
   });
+}
+
+/** A static frame; the cause (it depends on the URL) renders inside <Suspense>. See the camp page. */
+export default function CausePage({ params }: PageProps<"/causes/[slug]">) {
+  return (
+    <Suspense fallback={<div aria-hidden className="on-ink min-h-[28rem] sm:min-h-[34rem] lg:min-h-[40rem]" />}>
+      <CauseContent params={params} />
+    </Suspense>
+  );
 }
 
 /**
  * One cause: what it is, its camps (coming up, then the register), and a way
  * to give to it. The other causes sit at the foot of the page.
  */
-export default async function CausePage({ params }: PageProps<"/causes/[slug]">) {
+async function CauseContent({ params }: { params: PageProps<"/causes/[slug]">["params"] }) {
   const { slug } = await params;
-  const [cause, causes, timeline, settings] = await Promise.all([
+  const [cause, causes, timeline, settings, copy] = await Promise.all([
     getCause(slug),
     getCauses(),
     getEventTimeline(),
     getSiteSettings(),
+    getCopy(),
   ]);
   if (!cause) notFound();
 
+  const text = copy.pages.cause;
   const upcoming = timeline.upcoming.filter((e) => e.cause?.slug === cause.slug);
   const past = timeline.past.filter((e) => e.cause?.slug === cause.slug);
   const firstYear = past.at(-1)?.startDate.slice(0, 4);
   const others = causes.filter((c) => c.slug !== cause.slug);
+  const crumbs = [
+    { label: copy.labels.common.home, href: ROUTES.home },
+    { label: copy.pages.causes.breadcrumb, href: ROUTES.causes },
+    { label: cause.title },
+  ];
 
   return (
     <>
@@ -65,14 +85,7 @@ export default async function CausePage({ params }: PageProps<"/causes/[slug]">)
         />
         <div aria-hidden className="absolute inset-0 -z-10 bg-linear-to-t from-ink via-ink/75 to-ink/40" />
         <div className="mx-auto max-w-7xl px-4 pt-4 pb-12 sm:px-6 sm:pt-6 sm:pb-16 lg:px-8 lg:pb-20">
-          <Breadcrumbs
-            tone="dark"
-            items={[
-              { label: "Home", href: ROUTES.home },
-              { label: "Our causes", href: ROUTES.causes },
-              { label: cause.title },
-            ]}
-          />
+          <Breadcrumbs tone="dark" items={crumbs} label={copy.labels.accessibility.breadcrumb} />
           <div className="mt-16 max-w-2xl sm:mt-24 lg:mt-32">
             <p className="eyebrow text-marigold">{cause.tagline}</p>
             <h1 id="cause-title" className="mt-3 text-5xl leading-none font-semibold text-white sm:text-7xl">
@@ -80,18 +93,18 @@ export default async function CausePage({ params }: PageProps<"/causes/[slug]">)
             </h1>
             <p className="mt-5 text-base leading-relaxed text-ink-200 sm:text-lg">{cause.summary}</p>
             <p className="mt-5 font-semibold text-white">
-              {past.length} {past.length === 1 ? "camp" : "camps"} on the register
-              {firstYear ? ` since ${firstYear}` : ""}
-              {upcoming.length > 0 ? ` · ${upcoming.length} coming up` : ""}
+              {plural(past.length, text.campCount)}
+              {firstYear ? fill(text.since, { year: firstYear }) : null}
+              {upcoming.length > 0 ? fill(text.comingUp, { n: upcoming.length }) : null}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <ButtonLink href={donateHref(settings.donateUrl, { cause: cause.slug })} variant="marigold" size="lg">
                 <HeartHandshake aria-hidden />
-                Give to {cause.title.toLowerCase()} camps
+                {fill(text.give, { cause: cause.title.toLowerCase() })}
               </ButtonLink>
               {past.length > 0 ? (
                 <ButtonLink href="#camps" variant="outline-light" size="lg">
-                  See the camps
+                  {text.seeCamps}
                 </ButtonLink>
               ) : null}
             </div>
@@ -99,29 +112,23 @@ export default async function CausePage({ params }: PageProps<"/causes/[slug]">)
         </div>
       </section>
 
-      <UpcomingCamps events={upcoming} settings={settings} />
+      <UpcomingCamps events={upcoming} settings={settings} copy={copy} />
 
       {past.length > 0 ? (
         <section id="camps" aria-labelledby="camps-title" className="scroll-mt-20 py-12 sm:py-16 lg:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <h2 id="camps-title" className="text-3xl font-semibold sm:text-4xl">
-              {cause.title} camps on the register
+              {fill(text.campsTitle, { cause: cause.title })}
             </h2>
-            <div className="register mt-6 overflow-hidden rounded-[1.25rem] bg-white shadow-[0_30px_60px_-45px_rgb(23_25_59/0.4)] ring-1 ring-line">
-              <ol>
-                {past.map((e) => (
-                  <RegisterEntry key={e.id} event={e} />
-                ))}
-              </ol>
-            </div>
+            <RegisterList events={past} className="mt-6" />
           </div>
         </section>
       ) : null}
 
       {others.length > 0 ? (
-        <nav aria-label="Other causes" className="defer-render bg-paper-2">
+        <nav aria-label={text.othersLabel} className="defer-render bg-paper-2">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <h2 className="text-2xl font-semibold sm:text-3xl">Our other causes</h2>
+            <h2 className="text-2xl font-semibold sm:text-3xl">{text.othersTitle}</h2>
             <ul className="mt-6 grid gap-4 sm:grid-cols-3">
               {others.map((c) => (
                 <li key={c.slug}>
@@ -157,16 +164,7 @@ export default async function CausePage({ params }: PageProps<"/causes/[slug]">)
         </nav>
       ) : null}
 
-      <JsonLd
-        data={[
-          breadcrumbJsonLd([
-            { name: "Home", path: ROUTES.home },
-            { name: "Our causes", path: ROUTES.causes },
-            { name: cause.title, path: ROUTES.cause(cause.slug) },
-          ]),
-          ...upcoming.map(eventJsonLd),
-        ]}
-      />
+      <JsonLd data={[breadcrumbJsonLd(crumbs, ROUTES.cause(cause.slug)), ...upcoming.map(eventJsonLd)]} />
     </>
   );
 }

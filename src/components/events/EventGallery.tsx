@@ -5,7 +5,8 @@ import Image from "next/image";
 import { useCallback, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 
 import { buttonClasses } from "@/components/ui/ButtonLink";
-import type { ImageRef } from "@/lib/cms/types";
+import type { ImageRef, SiteCopy } from "@/lib/cms/types";
+import { fill } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /** Shown before "Show all": two screens of photos on a phone. */
@@ -17,7 +18,16 @@ const FIRST = 8;
  * photos are in the HTML; the ones after the first few wait behind
  * "Show all" (hidden, so they don't load until asked for).
  */
-export function EventGallery({ photos, title }: { photos: ImageRef[]; title: string }) {
+export function EventGallery({
+  photos,
+  title,
+  labels,
+}: {
+  photos: ImageRef[];
+  title: string;
+  /** Buttons & labels → Gallery (the CMS). */
+  labels: SiteCopy["labels"]["gallery"];
+}) {
   const [expanded, setExpanded] = useState(photos.length <= FIRST + 2);
   const [index, setIndex] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -87,13 +97,13 @@ export function EventGallery({ photos, title }: { photos: ImageRef[]; title: str
       {!expanded ? (
         <button type="button" onClick={() => setExpanded(true)} className={cn(buttonClasses("secondary", "md"), "mt-4 w-full sm:w-auto")}>
           <Images aria-hidden />
-          Show all {count} photos
+          {fill(labels.showAll, { n: count })}
         </button>
       ) : null}
 
       <dialog
         ref={dialogRef}
-        aria-label={`Photos from ${title}`}
+        aria-label={fill(labels.viewer, { title })}
         onClose={onClose}
         onKeyDown={onKeyDown}
         className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none bg-ink p-0 text-white backdrop:bg-ink"
@@ -102,7 +112,7 @@ export function EventGallery({ photos, title }: { photos: ImageRef[]; title: str
           <div className="flex h-full flex-col">
             <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
               <p aria-live="polite" className="text-sm text-ink-200 tabular-nums">
-                Photo {at + 1} of {count}
+                {fill(labels.photoOf, { n: at + 1, total: count })}
               </p>
               <button
                 type="button"
@@ -110,7 +120,7 @@ export function EventGallery({ photos, title }: { photos: ImageRef[]; title: str
                 className="inline-flex size-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-3 focus-visible:outline-marigold"
               >
                 <X aria-hidden className="size-6" />
-                <span className="sr-only">Close photos</span>
+                <span className="sr-only">{labels.close}</span>
               </button>
             </div>
 
@@ -149,7 +159,7 @@ export function EventGallery({ photos, title }: { photos: ImageRef[]; title: str
                     className="inline-flex size-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-3 focus-visible:outline-marigold"
                   >
                     <ChevronLeft aria-hidden className="size-6" />
-                    <span className="sr-only">Previous photo</span>
+                    <span className="sr-only">{labels.previous}</span>
                   </button>
                   <p className="max-w-[60vw] truncate text-center text-sm text-ink-200 max-sm:hidden">{title}</p>
                   <button
@@ -158,7 +168,7 @@ export function EventGallery({ photos, title }: { photos: ImageRef[]; title: str
                     className="inline-flex size-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-3 focus-visible:outline-marigold"
                   >
                     <ChevronRight aria-hidden className="size-6" />
-                    <span className="sr-only">Next photo</span>
+                    <span className="sr-only">{labels.next}</span>
                   </button>
                 </>
               ) : null}

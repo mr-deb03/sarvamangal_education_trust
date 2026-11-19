@@ -1,18 +1,39 @@
 import { CalendarPlus, Check, Clock, HandHelping, HeartHandshake, MapPin, MessageCircle, Navigation } from "lucide-react";
 import Image from "next/image";
 
-import { Reveal } from "@/components/motion/Reveal";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Reveal } from "@/components/ui/Reveal";
 import { SectionIntro } from "@/components/ui/SectionIntro";
-import type { CampEvent, SiteSettings } from "@/lib/cms/types";
-import { calendarHref, directionsHref, eventDayLabel, eventPlace, shareHref } from "@/lib/event-links";
-import { formatDate } from "@/lib/format";
+import type { CampEvent, SiteCopy, SiteSettings } from "@/lib/cms/types";
+import {
+  calendarHref,
+  directionsHref,
+  eventDayLabel,
+  eventPlace,
+  shareHref,
+  type LinkCopy,
+} from "@/lib/event-links";
+import { fill, formatDate, plural } from "@/lib/format";
 import { cn, donateHref, focalStyle, whatsappHref } from "@/lib/utils";
 
-import { Countdown } from "./Countdown";
+import { Countdown, type CountdownText } from "./Countdown";
 
 const MORE_ON_PAGE = 4;
 const external = { target: "_blank", rel: "noopener noreferrer" } as const;
+
+type CampText = SiteCopy["labels"]["camp"];
+
+const countdownText = (t: CampText): CountdownText => ({
+  days: t.countdownDays,
+  tomorrow: t.countdownTomorrow,
+  today: t.countdownToday,
+  onNow: t.countdownOnNow,
+});
+
+const linkCopy = (copy: SiteCopy, settings: SiteSettings): LinkCopy => ({
+  messages: copy.labels.messages,
+  siteName: settings.identity.siteName,
+});
 
 /**
  * Upcoming camps, each as a free-entry ticket: the stub carries the date and a
@@ -20,32 +41,37 @@ const external = { target: "_blank", rel: "noopener noreferrer" } as const;
  * save it, find it, send it to someone, volunteer, or fund it.
  * Rendered only while something is coming up.
  */
-export function UpcomingCamps({ events, settings }: { events: CampEvent[]; settings: SiteSettings }) {
+export function UpcomingCamps({
+  events,
+  settings,
+  copy,
+}: {
+  events: CampEvent[];
+  settings: SiteSettings;
+  copy: SiteCopy;
+}) {
   const [next, ...more] = events;
   if (!next) return null;
+  const text = copy.home.comingUp;
 
   return (
     <section id="coming-up" aria-labelledby="coming-up-title" className="scroll-mt-20 bg-paper-2 py-12 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionIntro
-          id="coming-up-title"
-          eyebrow="Coming up"
-          title={events.length === 1 ? "Our next free camp" : "Our next free camps"}
-        >
-          Entry is free. Come along, send the details to someone who needs them, or help us run it.
+        <SectionIntro id="coming-up-title" eyebrow={text.eyebrow} title={plural(events.length, text.title)}>
+          {text.intro}
         </SectionIntro>
 
         <Reveal className="mt-10 lg:mt-12">
-          <Ticket event={next} settings={settings} />
+          <Ticket event={next} settings={settings} copy={copy} />
         </Reveal>
 
         {more.length > 0 ? (
           <div className="mt-14">
-            <h3 className="eyebrow font-sans text-ink-muted">Also coming up</h3>
+            <h3 className="eyebrow font-sans text-ink-muted">{text.alsoComingUp}</h3>
             <ul className="mt-5 grid gap-5 md:grid-cols-2">
               {more.slice(0, MORE_ON_PAGE).map((event, i) => (
                 <Reveal as="li" key={event.id} delayMs={i * 90}>
-                  <MiniTicket event={event} />
+                  <MiniTicket event={event} text={copy.labels.camp} links={linkCopy(copy, settings)} />
                 </Reveal>
               ))}
             </ul>
@@ -56,14 +82,27 @@ export function UpcomingCamps({ events, settings }: { events: CampEvent[]; setti
   );
 }
 
-/** The soonest camp, in full. */
-export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSettings }) {
+/** The soonest camp, in full. `headingLevel` 2 where the ticket sits directly under a page's h1. */
+export function Ticket({
+  event,
+  settings,
+  copy,
+  headingLevel = 3,
+}: {
+  event: CampEvent;
+  settings: SiteSettings;
+  copy: SiteCopy;
+  headingLevel?: 2 | 3;
+}) {
+  const text = copy.labels.camp;
+  const links = linkCopy(copy, settings);
   const directions = directionsHref(event);
   const volunteerHref = whatsappHref(
     settings.whatsappNumber,
-    `Hi! I’d like to volunteer at ${event.title} on ${eventDayLabel(event)}.`,
+    fill(copy.labels.messages.volunteerAtCamp, { title: event.title, day: eventDayLabel(event) }),
   );
   const titleId = `camp-${event.id}`;
+  const Heading = headingLevel === 2 ? "h2" : "h3";
 
   return (
     <article
@@ -76,7 +115,7 @@ export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSe
       )}
     >
       {/* Phones: the stub is the ticket's header. Desktop: it's on the right, behind the perforation. */}
-      <Stub event={event} className="lg:order-3" />
+      <Stub event={event} text={text} links={links} className="lg:order-3" />
 
       {event.coverImage ? (
         <div className="relative aspect-[16/9] bg-paper-2 lg:order-1 lg:aspect-auto lg:min-h-[27rem]">
@@ -94,9 +133,9 @@ export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSe
 
       <div className="flex flex-col p-6 sm:p-8 lg:order-2 lg:p-10">
         {event.cause ? <p className="eyebrow text-crimson">{event.cause.title}</p> : null}
-        <h3 id={titleId} className="mt-2 text-[1.9rem] leading-[1.1] font-semibold sm:text-[2.3rem]">
+        <Heading id={titleId} className="mt-2 text-[1.9rem] leading-[1.1] font-semibold sm:text-[2.3rem]">
           {event.title}
-        </h3>
+        </Heading>
 
         <ul className="mt-4 space-y-2 text-ink-soft">
           {event.timeLabel ? (
@@ -117,7 +156,7 @@ export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSe
                     {...external}
                     className="inline-flex items-center gap-1 font-semibold text-crimson underline decoration-crimson/35 underline-offset-4 hover:decoration-crimson"
                   >
-                    Directions
+                    {text.directions}
                     <Navigation aria-hidden className="size-3.5" />
                   </a>
                 </>
@@ -130,10 +169,10 @@ export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSe
 
         {event.highlights && event.highlights.length > 0 ? (
           <div className="mt-6">
-            <p className="eyebrow text-ink-muted">At the camp</p>
+            <p className="eyebrow text-ink-muted">{text.highlights}</p>
             <ul className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-              {event.highlights.map((item) => (
-                <li key={item} className="flex items-start gap-2 font-semibold text-ink">
+              {event.highlights.map((item, i) => (
+                <li key={`${item}-${i}`} className="flex items-start gap-2 font-semibold text-ink">
                   <Check aria-hidden className="mt-1 size-4 shrink-0 text-crimson" />
                   {item}
                 </li>
@@ -146,23 +185,23 @@ export function Ticket({ event, settings }: { event: CampEvent; settings: SiteSe
           <div className="flex flex-wrap gap-3">
             <ButtonLink href={donateHref(settings.donateUrl, { cause: event.cause?.slug })}>
               <HeartHandshake aria-hidden />
-              Help fund this camp
+              {text.helpFund}
             </ButtonLink>
             <ButtonLink href={volunteerHref} variant="secondary" {...external}>
               <HandHelping aria-hidden />
-              Volunteer at this camp
+              {text.volunteer}
             </ButtonLink>
           </div>
           <a
-            href={shareHref(event)}
+            href={shareHref(event, links)}
             {...external}
             className="mt-5 inline-flex min-h-11 items-center gap-2 text-[0.98rem] text-ink-soft transition-colors hover:text-crimson"
           >
             <MessageCircle aria-hidden className="size-5 text-crimson" />
             <span>
-              Know someone who should come?{" "}
+              {text.shareLead}{" "}
               <span className="font-semibold text-crimson underline decoration-crimson/35 underline-offset-4">
-                Send them the details on WhatsApp
+                {text.shareCta}
               </span>
             </span>
           </a>
@@ -186,7 +225,7 @@ const isRange = (e: CampEvent) => dayRange(e).includes("–");
  * live countdown, and "Add to calendar". The two paper-coloured circles are the
  * ticket's notches, sitting on the perforation.
  */
-function Stub({ event, className }: { event: CampEvent; className?: string }) {
+function Stub({ event, text, links, className }: { event: CampEvent; text: CampText; links: LinkCopy; className?: string }) {
   const { startDate, endDate } = event;
   const sameMonth = !endDate || endDate.slice(0, 7) === startDate.slice(0, 7);
 
@@ -202,7 +241,8 @@ function Stub({ event, className }: { event: CampEvent; className?: string }) {
       <span aria-hidden className="absolute -right-3 -bottom-3 size-6 rounded-full bg-paper-2 lg:right-auto lg:-left-3" />
 
       <time dateTime={startDate} className="block">
-        <span className="eyebrow block text-white/80">{formatDate(startDate, { weekday: "long" })}</span>
+        {/* Solid white on crimson: small text needs the full 5.9:1 contrast (white/80 is 4.1:1). */}
+        <span className="eyebrow block text-white">{formatDate(startDate, { weekday: "long" })}</span>
         <span
           className={cn(
             "mt-1 block font-display leading-[0.95] font-semibold whitespace-nowrap lining-nums",
@@ -215,22 +255,22 @@ function Stub({ event, className }: { event: CampEvent; className?: string }) {
           {formatDate(startDate, { month: "long", year: "numeric" })}
         </span>
         {endDate && !sameMonth ? (
-          <span className="block text-sm text-white/80">to {formatDate(endDate)}</span>
+          <span className="block text-sm text-white">{fill(text.endsOn, { date: formatDate(endDate) })}</span>
         ) : null}
       </time>
 
       <div className="flex flex-col items-end gap-2.5 text-right lg:mt-7 lg:items-start lg:text-left">
         <span className="flex min-h-7 items-center">
-          <Countdown start={startDate} end={endDate} />
+          <Countdown start={startDate} end={endDate} text={countdownText(text)} />
         </span>
-        <p className="eyebrow text-marigold-soft">Entry free</p>
+        <p className="eyebrow text-marigold-soft">{text.entryFree}</p>
         <a
-          href={calendarHref(event)}
+          href={calendarHref(event, links)}
           {...external}
           className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-white underline decoration-white/40 underline-offset-4 hover:decoration-white"
         >
           <CalendarPlus aria-hidden className="size-4" />
-          Add to calendar
+          {text.addToCalendar}
         </a>
       </div>
     </div>
@@ -238,7 +278,7 @@ function Stub({ event, className }: { event: CampEvent; className?: string }) {
 }
 
 /** Later camps: a smaller ticket with the date stub on the left. */
-function MiniTicket({ event }: { event: CampEvent }) {
+function MiniTicket({ event, text, links }: { event: CampEvent; text: CampText; links: LinkCopy }) {
   const directions = directionsHref(event);
   const link = "inline-flex min-h-11 items-center gap-1.5 font-semibold text-crimson hover:underline";
 
@@ -248,7 +288,7 @@ function MiniTicket({ event }: { event: CampEvent }) {
         <span aria-hidden className="absolute -top-3 -right-3 size-6 rounded-full bg-paper-2" />
         <span aria-hidden className="absolute -right-3 -bottom-3 size-6 rounded-full bg-paper-2" />
         <time dateTime={event.startDate}>
-          <span className="eyebrow block text-[0.7rem] text-white/80">
+          <span className="eyebrow block text-[0.7rem] text-white">
             {formatDate(event.startDate, { weekday: "short" })}
           </span>
           <span
@@ -266,26 +306,26 @@ function MiniTicket({ event }: { event: CampEvent }) {
       <div className="flex flex-col p-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           {event.cause ? <p className="eyebrow text-[0.72rem] text-crimson">{event.cause.title}</p> : null}
-          <Countdown start={event.startDate} end={event.endDate} className="px-2.5 py-0.5 text-xs" />
+          <Countdown start={event.startDate} end={event.endDate} text={countdownText(text)} className="px-2.5 py-0.5 text-xs" />
         </div>
         <h4 className="mt-1.5 text-xl leading-snug font-semibold">{event.title}</h4>
         <p className="mt-1.5 text-[0.95rem] leading-snug text-ink-muted">
           {[event.timeLabel, eventPlace(event)].filter(Boolean).join(" · ")}
         </p>
         <div className="mt-auto flex flex-wrap gap-x-5 pt-2 text-[0.95rem]">
-          <a href={calendarHref(event)} {...external} className={link}>
+          <a href={calendarHref(event, links)} {...external} className={link}>
             <CalendarPlus aria-hidden className="size-4" />
-            Add to calendar
+            {text.addToCalendar}
           </a>
           {directions ? (
             <a href={directions} {...external} className={link}>
               <Navigation aria-hidden className="size-4" />
-              Directions
+              {text.directions}
             </a>
           ) : null}
-          <a href={shareHref(event)} {...external} className={link}>
+          <a href={shareHref(event, links)} {...external} className={link}>
             <MessageCircle aria-hidden className="size-4" />
-            Send on WhatsApp
+            {text.sendOnWhatsapp}
           </a>
         </div>
       </div>

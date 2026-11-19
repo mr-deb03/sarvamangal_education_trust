@@ -1,22 +1,27 @@
 import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ContactForm } from "@/components/forms/EnquiryForms";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SocialLinks } from "@/components/ui/SocialIcons";
-import { getSiteSettings } from "@/lib/cms";
-import { formatAddress, formatDate, officeMapHref } from "@/lib/format";
+import { getCopy, getSiteSettings } from "@/lib/cms";
+import { fill, formatAddress, formatDate, officeMapHref } from "@/lib/format";
 import { breadcrumbJsonLd, ORG_ID, pageMetadata } from "@/lib/seo";
-import { ROUTES, SITE_NAME, SITE_URL } from "@/lib/site";
+import { ROUTES, SITE_URL } from "@/lib/site";
 import { telHref, whatsappHref } from "@/lib/utils";
 
-export const metadata = pageMetadata({
-  title: "Contact us",
-  description:
-    "Call, WhatsApp or write to Sarvamangal Education Trust in Bhandup West, Mumbai — about a camp, a donation receipt, volunteering or CSR.",
-  path: ROUTES.contact,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const [{ identity }, copy] = await Promise.all([getSiteSettings(), getCopy()]);
+  const text = copy.pages.contact;
+  return pageMetadata({
+    title: text.metaTitle,
+    description: fill(text.metaDescription, { siteName: identity.siteName }),
+    path: ROUTES.contact,
+    identity,
+  });
+}
 
 /** One way to reach the trust: an icon, what it is, and the link itself. */
 function Way({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
@@ -34,18 +39,29 @@ function Way({ icon, label, children }: { icon: ReactNode; label: string; childr
 const linkClass =
   "inline-flex min-h-11 items-center gap-1.5 font-display text-xl text-white underline decoration-white/30 underline-offset-4 [overflow-wrap:anywhere] hover:decoration-marigold";
 
+/**
+ * Every way to reach the trust (from Site settings), and a message form that
+ * lands in /admin → Inbox. Text: Website text → Page text → Contact page, and → Forms.
+ */
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
-  const { contact, legal } = settings;
+  const [settings, copy] = await Promise.all([getSiteSettings(), getCopy()]);
+  const { contact, legal, identity } = settings;
+  const text = copy.pages.contact;
+  const footer = copy.layout.footer;
+  const crumbs = [{ label: copy.labels.common.home, href: ROUTES.home }, { label: text.breadcrumb }];
+  // On a narrow card the address wraps after the "@", not mid-word.
+  const at = contact.email.indexOf("@");
+  const emailParts = at > 0 ? [contact.email.slice(0, at + 1), contact.email.slice(at + 1)] : [contact.email];
 
   return (
     <>
       <PageHeader
         id="contact-title"
-        crumbs={[{ label: "Home", href: ROUTES.home }, { label: "Contact" }]}
-        eyebrow="Contact us"
-        title="Talk to us"
-        intro="A question about a camp, a donation receipt, volunteering or a CSR partnership? Call, send a WhatsApp message or write to us."
+        crumbs={crumbs}
+        breadcrumbLabel={copy.labels.accessibility.breadcrumb}
+        eyebrow={text.eyebrow}
+        title={text.title}
+        intro={text.intro}
       />
 
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:py-16">
@@ -53,69 +69,76 @@ export default async function ContactPage() {
         <aside aria-labelledby="reach-title" className="lg:col-span-5">
           <div className="on-ink rounded-[1.75rem] p-6 sm:p-8 lg:sticky lg:top-28">
             <h2 id="reach-title" className="text-2xl font-semibold text-white">
-              {SITE_NAME}
+              {identity.siteName}
             </h2>
             <ul className="mt-6">
-              <Way icon={<Phone aria-hidden className="size-5" />} label="Call">
+              <Way icon={<Phone aria-hidden className="size-5" />} label={text.callLabel}>
                 <a href={telHref(contact.phone)} className={linkClass}>
                   {contact.phone}
                 </a>
               </Way>
-              <Way icon={<MessageCircle aria-hidden className="size-5" />} label="WhatsApp">
+              <Way icon={<MessageCircle aria-hidden className="size-5" />} label={text.whatsappLabel}>
                 <a
-                  href={whatsappHref(settings.whatsappNumber, "Namaste! I have a question for Sarvamangal Education Trust.")}
+                  href={whatsappHref(settings.whatsappNumber, copy.layout.whatsapp.greeting)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
                 >
-                  Send us a message
+                  {text.whatsappCta}
                   <ArrowUpRight aria-hidden className="size-5 text-marigold" />
                 </a>
               </Way>
-              <Way icon={<Mail aria-hidden className="size-5" />} label="Email">
+              <Way icon={<Mail aria-hidden className="size-5" />} label={text.emailLabel}>
                 <a href={`mailto:${contact.email}`} className={linkClass}>
-                  {/* On a narrow card the address wraps after the "@", not mid-word. */}
                   <span>
-                    {contact.email.split("@")[0]}@<wbr />
-                    {contact.email.split("@")[1]}
+                    {emailParts[0]}
+                    {emailParts[1] ? <wbr /> : null}
+                    {emailParts[1]}
                   </span>
                 </a>
               </Way>
-              <Way icon={<MapPin aria-hidden className="size-5" />} label="Office">
+              <Way icon={<MapPin aria-hidden className="size-5" />} label={text.officeLabel}>
                 <address className="leading-relaxed not-italic">
                   {contact.addressLines.map((line) => (
                     <span key={line} className="block">
                       {line}
                     </span>
                   ))}
-                  {contact.locality}, {contact.city} {contact.postalCode}
+                  {[contact.locality, [contact.city, contact.postalCode].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
                 </address>
                 <a
                   href={officeMapHref(contact)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Directions to ${formatAddress(contact)} (opens Google Maps)`}
+                  aria-label={fill(text.directionsLabel, { address: formatAddress(contact) })}
                   className="mt-1 inline-flex min-h-11 items-center gap-1.5 font-semibold text-marigold hover:underline"
                 >
-                  Get directions
+                  {text.directions}
                   <ArrowUpRight aria-hidden className="size-4" />
                 </a>
               </Way>
             </ul>
 
-            {settings.socials.length > 0 ? <SocialLinks socials={settings.socials} className="mt-2" /> : null}
+            {settings.socials.length > 0 ? (
+              <SocialLinks
+                socials={settings.socials}
+                label={copy.labels.accessibility.social}
+                shortName={identity.shortName}
+                className="mt-2"
+              />
+            ) : null}
 
             <dl className="mt-7 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-white/10 pt-6 text-sm">
               <div>
-                <dt className="text-ink-200">Registration</dt>
+                <dt className="text-ink-200">{footer.registrationLabel}</dt>
                 <dd className="font-semibold text-white">{legal.registrationNo}</dd>
               </div>
               <div>
-                <dt className="text-ink-200">PAN</dt>
+                <dt className="text-ink-200">{footer.panLabel}</dt>
                 <dd className="font-semibold text-white">{legal.pan}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-ink-200">80G</dt>
+                <dt className="text-ink-200">{footer.eightyGLabel}</dt>
                 <dd className="font-semibold text-white">
                   {legal.eightyGNo} <span className="font-normal text-ink-200">· {formatDate(legal.eightyGDate)}</span>
                 </dd>
@@ -126,14 +149,14 @@ export default async function ContactPage() {
 
         <section aria-labelledby="message-title" className="lg:col-span-7">
           <h2 id="message-title" className="text-[1.75rem] font-semibold sm:text-4xl">
-            Send us a message
+            {text.formTitle}
           </h2>
-          <p className="mt-3 max-w-xl text-ink-muted">
-            Leave a phone number or an email and we’ll get back to you. For a donation receipt, include the date and
-            amount of your gift.
-          </p>
+          <p className="mt-3 max-w-xl text-ink-muted">{text.formIntro}</p>
           <div className="mt-6">
-            <ContactForm whatsappNumber={settings.whatsappNumber} />
+            <ContactForm
+              whatsappNumber={settings.whatsappNumber}
+              text={{ ...copy.forms, privacyLinkText: copy.policies.privacy.linkText }}
+            />
           </div>
         </section>
       </div>
@@ -143,14 +166,11 @@ export default async function ContactPage() {
           {
             "@context": "https://schema.org",
             "@type": "ContactPage",
-            name: `Contact ${SITE_NAME}`,
+            name: fill(text.schemaName, { siteName: identity.siteName }),
             url: `${SITE_URL}${ROUTES.contact}`,
             about: { "@id": ORG_ID },
           },
-          breadcrumbJsonLd([
-            { name: "Home", path: ROUTES.home },
-            { name: "Contact", path: ROUTES.contact },
-          ]),
+          breadcrumbJsonLd(crumbs, ROUTES.contact),
         ]}
       />
     </>

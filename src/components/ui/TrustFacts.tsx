@@ -1,22 +1,25 @@
-import type { SiteSettings } from "@/lib/cms/types";
-import { formatDate } from "@/lib/format";
+import type { SiteCopy, SiteSettings } from "@/lib/cms/types";
+import { fill, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /** Registration, PAN and 80G — what donors and CSR teams check before giving. */
 export function TrustFacts({
   legal,
+  labels,
   tone = "light",
   className,
 }: {
   legal: SiteSettings["legal"];
+  /** Buttons & labels → Trust (the CMS). */
+  labels: SiteCopy["labels"]["trust"];
   tone?: "light" | "dark";
   className?: string;
 }) {
   const dark = tone === "dark";
   const facts = [
-    { term: "Public trust registration", value: legal.registrationNo },
-    { term: "PAN", value: legal.pan },
-    { term: "80G registration", value: legal.eightyGNo, note: `since ${formatDate(legal.eightyGDate)}` },
+    { term: labels.registration, value: legal.registrationNo },
+    { term: labels.pan, value: legal.pan },
+    { term: labels.eightyG, value: legal.eightyGNo, note: fill(labels.since, { date: formatDate(legal.eightyGDate) }) },
   ];
   return (
     <dl className={cn("grid gap-x-6 gap-y-4 sm:grid-cols-3", className)}>

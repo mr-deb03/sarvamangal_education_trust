@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  * visitor has scrolled past the first screen. It also steps aside while
  * someone is typing in a form, where the open keyboard leaves little room.
  */
-export function MobileDonateBar({ donateUrl }: { donateUrl: string }) {
+export function MobileDonateBar({ donateUrl, label }: { donateUrl: string; label: string }) {
   const [wanted, setVisible] = useState(false);
   const [typing, setTyping] = useState(false);
   const pathname = usePathname();
@@ -66,17 +66,19 @@ export function MobileDonateBar({ donateUrl }: { donateUrl: string }) {
   }, [visible]);
 
   return (
+    // `inert` while hidden: out of the tab order and the accessibility tree in one go.
     <div
-      aria-hidden={!visible}
+      inert={!visible}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 pt-3 transition-transform duration-300 ease-out md:hidden",
+        // Fades rather than slides: an opacity change can never register as a layout shift.
+        "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 pt-3 transition-[opacity,visibility] duration-300 ease-out md:hidden",
         "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
-        visible ? "translate-y-0" : "translate-y-full",
+        visible ? "visible opacity-100" : "invisible opacity-0",
       )}
     >
-      <a href={donateUrl} tabIndex={visible ? 0 : -1} className={cn(buttonClasses("primary", "md"), "w-full")}>
+      <a href={donateUrl} className={cn(buttonClasses("primary", "md"), "w-full")}>
         <HeartHandshake aria-hidden />
-        Donate now · 80G tax benefit
+        {label}
       </a>
     </div>
   );

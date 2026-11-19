@@ -44,7 +44,13 @@ function columnCards(items: { t: Testimonial; tone?: string }[], column: number)
  * phones never build the wall at all. The frame is server-rendered at its
  * full height, so nothing shifts when the cards arrive.
  */
-export function TestimonialWall({ items }: { items: { t: Testimonial; tone?: string }[] }) {
+export function TestimonialWall({
+  items,
+  supporterSince,
+}: {
+  items: { t: Testimonial; tone?: string }[];
+  supporterSince: string;
+}) {
   const show = useSyncExternalStore(subscribe, wallWanted, notOnServer);
 
   return (
@@ -67,7 +73,7 @@ export function TestimonialWall({ items }: { items: { t: Testimonial; tone?: str
                     <ul key={copy} className="flex flex-col gap-4 pb-4 lg:gap-5 lg:pb-5">
                       {cards.map(({ t, tone }, i) => (
                         <li key={`${copy}-${i}-${t.id}`}>
-                          <TestimonialCard t={t} tone={tone} />
+                          <TestimonialCard t={t} tone={tone} supporterSince={supporterSince} />
                         </li>
                       ))}
                     </ul>
